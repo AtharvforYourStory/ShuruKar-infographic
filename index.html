@@ -3,347 +3,540 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shurukar AI V2 - Action Plan & Bihar Release Strategy</title>
+    <title>Shurukar AI V2 - Project Tracking Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F8F8F8; /* A very light off-white, closer to white */
+            background-color: #F8F8F8; /* Off-white from brand */
+            color: #362C2A; /* Dark text from brand */
         }
-        .chart-container {
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: #800000; /* Maroon */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #A52A2A; /* Lighter Maroon */
+        }
+        .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #362C2A;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db; /* Darker gray */
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* Full rounded */
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status-pending { background-color: #FFF0F0; color: #800000; } /* Light red with maroon text */
+        .status-inprogress { background-color: #FFF8EB; color: #E6A148; } /* Light yellow with orange text */
+        .status-completed { background-color: #E6F3E6; color: #3A663A; } /* Light green with dark green text */
+        
+        .test-not-confirmed { background-color: #FEE2E2; color: #B91C1C; } /* Lighter red for not confirmed */
+        .test-confirmed { background-color: #D1FAE5; color: #065F46; } /* Lighter green for confirmed */
+
+        .overdue-badge { background-color: #800000; color: white; } /* Maroon for overdue */
+
+        /* Priority Badges */
+        .priority-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .priority-p0 { background-color: #800000; color: white; } /* Dark Maroon - highest priority */
+        .priority-p1 { background-color: #A52A2A; color: white; } /* Medium Maroon */
+        .priority-p2 { background-color: #C75A5A; color: white; } /* Lighter Maroon */
+        .priority-p3 { background-color: #E28F8F; color: #800000; } /* Even lighter Maroon */
+        .priority-p4 { background-color: #F2C2C2; color: #800000; } /* Lightest Maroon */
+
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .chart-canvas-container {
             position: relative;
             width: 100%;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 280px;
-            max-height: 320px;
-        }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 320px;
-                max-height: 360px;
-            }
-        }
-        .flowchart-step {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border-radius: 0.75rem;
-            padding: 1rem 1.5rem;
-            min-height: 90px;
-            transition: all 0.3s ease-in-out;
-        }
-         .flowchart-step:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .flowchart-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: #800000; /* Maroon */
-            margin: 0.25rem 0;
-            opacity: 0.6;
-        }
-        .kpi-card {
-            background: linear-gradient(145deg, #800000, #A52A2A); /* Maroon gradient */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .priority-red {
-            border-color: #800000; /* Darker Maroon for "Red" priority */
-            background-color: #FFF0F0; /* Very light red/pink for background */
-        }
-         .priority-yellow {
-            border-color: #A52A2A; /* Brownish-Red for "Yellow" priority */
-            background-color: #FFF8EB; /* Very light orange/yellow for background */
+            height: 250px; /* Fixed height for consistency */
+            max-width: 400px; /* Max width for larger screens */
+            margin: auto;
         }
     </style>
 </head>
-<body class="antialiased text-gray-800">
+<body class="antialiased">
 
-    <div class="min-h-screen p-4 sm:p-6 lg:p-8">
-        <div class="max-w-7xl mx-auto">
-            
-            <header class="text-center mb-16">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-[#800000]">Shurukar AI V2 Strategy</h1>
-                <p class="mt-4 text-lg text-gray-700 max-w-3xl mx-auto">A visual action plan detailing high-priority fixes and the streamlined user flow for the upcoming Bihar Release.</p>
-            </header>
+    <div class="container">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-[#800000] mb-2">Shurukar AI V2 - Project Tracking</h1>
+            <p class="text-lg text-gray-700">Track and manage the progress of high-priority bot fixes.</p>
+        </header>
 
-            <main>
-                <section id="overview" class="mb-16">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-                        <div class="kpi-card text-white p-6 rounded-xl shadow-lg">
-                            <h3 class="text-5xl font-bold">8</h3>
-                            <p class="mt-2 text-lg font-medium opacity-90">High-Priority Fixes</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-lg">
-                            <h3 class="text-5xl font-bold text-[#800000]">4</h3>
-                            <p class="mt-2 text-lg font-medium text-gray-700">Future Improvements</p>
-                        </div>
-                         <div class="bg-white p-6 rounded-xl shadow-lg">
-                            <h3 class="text-5xl font-bold text-[#A52A2A]">6</h3>
-                            <p class="mt-2 text-lg font-medium text-gray-700">Steps in Lean Flow</p>
-                        </div>
-                    </div>
-                </section>
-
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-16">
-                    
-                    <div id="priority-breakdown" class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-bold text-center text-[#800000] mb-4">Issue Priority Breakdown</h2>
-                        <p class="text-center text-gray-600 mb-6 text-sm">The distribution highlights critical items needing immediate attention for the Bihar release.</p>
-                        <div class="chart-container h-64 md:h-72">
-                            <canvas id="priorityChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div id="category-analysis" class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-bold text-center text-[#800000] mb-4">Action Items by Category</h2>
-                         <p class="text-center text-gray-600 mb-6 text-sm">Feedback is concentrated on core bot behavior, data handling, and user interface elements.</p>
-                        <div class="chart-container h-64 md:h-72">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
-                    </div>
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-5 text-center">
+                <h2 class="text-xl font-bold text-[#800000] mb-2">Bot Release Date</h2>
+                <input type="date" id="botReleaseDateInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" onchange="updateBotReleaseDate()">
+                <p id="daysUntilRelease" class="text-gray-600 text-sm"></p>
+            </div>
+            <div class="card p-5">
+                <h2 class="text-xl font-bold text-[#800000] text-center mb-4">Issues Status</h2>
+                <div class="chart-canvas-container">
+                    <canvas id="issueStatusChart"></canvas>
                 </div>
+            </div>
+            <div class="card p-5 text-center">
+                <h2 class="text-xl font-bold text-[#800000] mb-2">Overdue Issues</h2>
+                <p id="overdueCount" class="text-5xl font-bold text-[#D24A32]"></p>
+                <p class="text-gray-600 mt-2">Issues past their due date.</p>
+            </div>
+        </section>
 
-                <section id="high-priority-actions" class="mb-16">
-                    <h2 class="text-3xl font-bold text-center text-[#800000] mb-8">High-Priority Action Plan (Mandatory Before Bihar Release)</h2>
-                    <div class="space-y-4">
-                        <div class="p-5 rounded-lg border-l-4 priority-red">
-                            <h3 class="text-lg font-semibold text-gray-800">Conversation Reset Mechanism and User Sessions</h3>
-                            <p class="text-gray-700 mt-1">Users can reset anytime after submitting the problem statement and the solution. Restrict session flow to 5 times/user. Modify the last message from a "Thank You" to also prompt the user ("Let me know if you have a better idea!") where the user profile remains the same and clicking on Reset wipes off the user profile data.</p>
-                        </div>
-                        <div class="p-5 rounded-lg border-l-4 priority-red">
-                             <h3 class="text-lg font-semibold text-gray-800">Dynamic Mandatory Field for Company Name</h3>
-                            <p class="text-gray-700 mt-1">Remove the field regarding company registration status and Company name entirely from the flow. This information is not as crucial as other data points.</p>
-                        </div>
-                        <div class="p-5 rounded-lg border-l-4 priority-red">
-                             <h3 class="text-lg font-semibold text-gray-800">Missing Essential Field (Website Name for MVP Stage)</h3>
-                            <p class="text-gray-700 mt-1">Add 'Website Name' as a distinct field in the `Data Fields to Capture` schema, ensuring it's included for `MVP Stage` users. It should be 'User Compulsion: true' for MVP stage to gather critical information.</p>
-                        </div>
-                        <div class="p-5 rounded-lg border-l-4 priority-red">
-                             <h3 class="text-lg font-semibold text-gray-800">Multi-Link Display Issue in Pitch Document</h3>
-                            <p class="text-gray-700 mt-1">Review and adjust the formatting logic to correctly handle and display multiple links. This may involve using bullet points, numbered lists, or clear line breaks to ensure readability and prevent truncation.</p>
-                        </div>
-                         <div class="p-5 rounded-lg border-l-4 priority-red">
-                             <h3 class="text-lg font-semibold text-gray-800">Inconsistent Stage-Specific Elaboration (e.g., Solution)</h3>
-                            <p class="text-gray-700 mt-1">Review the `Description` and guidance provided for key fields (like 'Solution') in `Data Fields to Capture`. Introduce more detailed, stage-specific elaboration instructions for pitch document creation to ensure consistency.</p>
-                        </div>
-                         <div class="p-5 rounded-lg border-l-4 priority-red">
-                            <h3 class="text-lg font-semibold text-gray-800">Hindi Language Support Deficiencies</h3>
-                            <p class="text-gray-700 mt-1">Prioritize a deep dive into the bot's NLP capabilities for Hindi. This requires integrating a more robust Hindi NLP model, extensive testing with various Hindi inputs (including half-sounds and matras), and explicit instruction for accurate Devanagari script rendering.</p>
-                        </div>
-                         <div class="p-5 rounded-lg border-l-4 priority-red">
-                            <h3 class="text-lg font-semibold text-gray-800">Flexible Data Input (Age vs. DOB)</h3>
-                            <p class="text-gray-700 mt-1">Remove the separate question for age/DOB. Instead, ask the user to mention their age within their general introduction, allowing for more natural input.</p>
-                        </div>
-                         <div class="p-5 rounded-lg border-l-4 priority-red">
-                            <h3 class="text-lg font-semibold text-gray-800">Limited Bot Assistance (Editing Phase / No In-Line Editing)</h3>
-                            <p class="text-gray-700 mt-1">Expand bot functionality for the "make edits" phase, allowing users to specify which field they want to edit *during* the gathering for that field. This enables re-engagement in a focused information-gathering loop for specific fields.</p>
-                        </div>
-                    </div>
-                </section>
+        <section class="mb-8 flex flex-wrap justify-center gap-4">
+            <button class="btn-primary" onclick="filterIssues('all')">All Issues</button>
+            <button class="btn-primary" onclick="filterIssues('pending')">Pending Issues</button>
+            <button class="btn-primary" onclick="filterIssues('completed')">Completed Issues</button>
+        </section>
 
-                <section id="important-future-actions" class="mb-16">
-                    <h2 class="text-3xl font-bold text-center text-[#800000] mb-8">Important Improvements (To look out for in the future)</h2>
-                    <div class="space-y-4">
-                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
-                            <h3 class="text-lg font-semibold text-gray-800">Restrictive Response Formats</h3>
-                            <p class="text-gray-700 mt-1">Review all current "Yes/No" forced questions. Modify rules to interpret more natural language for confirmations or binary choices, reducing explicit "Yes/No" prompts.</p>
-                        </div>
-                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
-                            <h3 class="text-lg font-semibold text-gray-800">Stale WhatsApp Button Handling</h3>
-                            <p class="text-gray-700 mt-1">Develop robust logic to handle out-of-context or stale button presses. Bot should acknowledge confusion and redirect to current conversation context or offer clear navigation.</p>
-                        </div>
-                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
-                             <h3 class="text-lg font-semibold text-gray-800">Missing Pitch Document Data (City & State)</h3>
-                            <p class="text-gray-700 mt-1">Ensure 'Location' field (or new separate fields for city/state) is explicitly collected and included in the "About the Founding Team" or a dedicated "Contact/Location" section within the Pitch Document Creator's output.</p>
-                        </div>
-                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
-                             <h3 class="text-lg font-semibold text-gray-800">Missing Feature (Share Location)</h3>
-                            <p class="text-gray-700 mt-1">Investigate the feasibility of integrating a "Share Location" feature via WhatsApp's API for streamlined location data collection, enhancing user convenience.</p>
-                        </div>
-                    </div>
-                </section>
+        <section class="card mb-8">
+            <h2 class="text-2xl font-bold text-[#800000] mb-4">Project Overview</h2>
+            <div id="issue-list" class="space-y-4">
+                <!-- Issues will be rendered here -->
+            </div>
+            <button class="btn-primary mt-6 w-full md:w-auto" onclick="openAddIssueModal()">Add New Issue</button>
+        </section>
+    </div>
 
-                <section id="bihar-release-flow" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-                    <h2 class="text-3xl font-bold text-center text-[#800000] mb-8">Bihar Release: Lean Question Flow</h2>
-                    <p class="text-center text-gray-600 mb-6 max-w-3xl mx-auto">This streamlined flow prioritizes essential information for quicker initial pitch document generation, with options for deeper elaboration based on user choice.</p>
-                    <div class="flex flex-col items-center">
-                        <div class="flowchart-step bg-[#800000] text-white w-full max-w-lg shadow-md">1. Welcome & Language Selection (English/Hindi)</div>
-                        <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#A52A2A] w-full max-w-xl shadow-sm">2. Core Idea & Problem/Solution Articulation</div>
-                        <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#C75A5A] w-full max-w-2xl shadow-sm">3. Founder Introduction (with embedded Full Name, Age, Email, City & State)</div>
-                        <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#E28F8F] w-full max-w-3xl shadow-sm">4. User Choice: Elaborate on Key Elements (Revenue, GTM, etc.) OR Generate Initial Pitch</div>
-                        <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#F2C2C2] w-full max-w-4xl shadow-sm">5. Final Call: Any external links or additional information for the pitch document?</div>
-                        <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-[#F8F8F8] text-[#800000] w-full max-w-5xl shadow-sm">6. Display Pitch Summary & Offer Final Refinement OR Generate Full Pitch Document</div>
-                    </div>
-                    <div class="mt-12 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                        <h3 class="text-xl font-bold text-[#800000] mb-4">Impact of the Above Process:</h3>
-                        <ul class="list-disc list-inside text-gray-700 space-y-2">
-                            <li>Reduces the number of mandatory questions from 16 to a lean 7.</li>
-                            <li>Offers flexibility to dive into deeper details/fields for interested users.</li>
-                            <li>Brings in a more conversational flow to enhance user experience and reduce probing.</li>
-                        </ul>
-                    </div>
-                </section>
-            </main>
-
-            <footer class="text-center mt-16 py-6 border-t border-gray-200">
-                <p class="text-gray-600">Visualizing the path to a smarter, more intuitive Shurukar AI.</p>
-            </footer>
+    <!-- Add/Edit Issue Modal -->
+    <div id="issueModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeIssueModal()">&times;</span>
+            <h2 id="modalTitle" class="text-2xl font-bold text-[#800000] mb-4">Add New Issue</h2>
+            <form id="issueForm" class="space-y-4">
+                <div>
+                    <label for="issueName" class="block text-gray-700 text-sm font-bold mb-2">Issue Name:</label>
+                    <input type="text" id="issueName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="issuePriority" class="block text-gray-700 text-sm font-bold mb-2">Priority:</label>
+                    <select id="issuePriority" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="P0">P0 - Critical</option>
+                        <option value="P1">P1 - High</option>
+                        <option value="P2">P2 - Medium</option>
+                        <option value="P3">P3 - Low</option>
+                        <option value="P4">P4 - Very Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="issueStatus" class="block text-gray-700 text-sm font-bold mb-2">Status on Fix:</label>
+                    <select id="issueStatus" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="testUpdate" class="block text-gray-700 text-sm font-bold mb-2">Confirmatory Test Update:</label>
+                    <select id="testUpdate" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Not Confirmed">Not Confirmed</option>
+                        <option value="Confirmed">Confirmed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dueDate" class="block text-gray-700 text-sm font-bold mb-2">Due Date:</label>
+                    <input type="date" id="dueDate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="developerRemark" class="block text-gray-700 text-sm font-bold mb-2">Developer Remark:</label>
+                    <textarea id="developerRemark" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
+                </div>
+                <input type="hidden" id="issueId">
+                <button type="submit" class="btn-primary w-full">Save Issue</button>
+            </form>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const wrapText = (text, charLimit) => {
-                if (typeof text !== 'string' || text.length <= charLimit) {
-                    return text;
-                }
-                const words = text.split(' ');
-                const lines = [];
-                let currentLine = '';
-                words.forEach(word => {
-                    if ((currentLine + ' ' + word).trim().length > charLimit) {
-                        if(currentLine) lines.push(currentLine.trim());
-                        currentLine = word;
-                    } else {
-                        currentLine = (currentLine + ' ' + word).trim();
-                    }
-                });
-                if (currentLine) {
-                    lines.push(currentLine.trim());
-                }
-                return lines;
-            };
+        let issues = [];
+        let currentFilter = 'all';
+        let botReleaseDate = '';
+        let issueStatusChartInstance; // To store the Chart.js instance
 
-            const createTooltipTitleCallback = () => {
-                return function(tooltipItems) {
-                    const item = tooltipItems[0];
-                    if (!item) return '';
-                    let label = item.chart.data.labels[item.dataIndex];
-                    if (Array.isArray(label)) {
-                        return label.join(' ');
-                    }
-                    return label;
-                };
-            };
+        // Priority order mapping (P0 = highest priority, P4 = lowest)
+        const priorityOrder = { 'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4 };
 
-            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-            if (priorityCtx) {
-                new Chart(priorityCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['High Priority', 'Future Improvements'],
-                        datasets: [{
-                            label: 'Issues by Priority',
-                            data: [8, 4],
-                            backgroundColor: ['#800000', '#A52A2A'], /* Maroon and a lighter shade */
-                            borderColor: ['#F8F8F8'], /* Background color for border */
-                            borderWidth: 5,
-                            hoverOffset: 10
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    font: { size: 14, family: 'Inter' },
-                                    color: '#362C2A', /* Dark text, close to black */
-                                    padding: 20,
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    title: createTooltipTitleCallback()
-                                }
-                            }
-                        },
-                        cutout: '65%'
-                    }
-                });
+        // Initial High-Priority Issues (with due dates and priorities)
+        const initialIssues = [
+            { id: 'issue1', name: 'Conversation Reset Mechanism and User Sessions', priority: 'P0', status: 'Pending', test_status: 'Not Confirmed', dueDate: '2025-07-15', remark: 'Working on refining session state management.' },
+            { id: 'issue2', name: 'Company Name Field Removal', priority: 'P1', status: 'In Progress', test_status: 'Not Confirmed', dueDate: '2025-06-25', remark: 'Flow adjustments are almost done, testing required.' },
+            { id: 'issue3', name: 'Missing Essential Field (Website Name for MVP Stage)', priority: 'P1', status: 'Pending', test_status: 'Not Confirmed', dueDate: '2025-08-01', remark: 'Schema updated, awaiting frontend integration.' },
+            { id: 'issue4', name: 'Multi-Link Display Issue in Pitch Document', priority: 'P2', status: 'In Progress', test_status: 'Not Confirmed', dueDate: '2025-06-18', remark: 'Investigating CSS layout issues with multiple URLs. Overdue, prioritizing this week.' }, // Overdue
+            { id: 'issue5', name: 'Inconsistent Stage-Specific Elaboration', priority: 'P2', status: 'Pending', test_status: 'Not Confirmed', dueDate: '2025-06-10', remark: 'Reviewing current elaboration rules for consistency. Overdue.' }, // Overdue
+            { id: 'issue6', name: 'Hindi Language Support Deficiencies', priority: 'P0', status: 'Pending', test_status: 'Not Confirmed', dueDate: '2025-08-15', remark: 'Researching better NLP models for Hindi. High complexity.' },
+            { id: 'issue7', name: 'Flexible Data Input (Age vs. DOB)', priority: 'P3', status: 'Completed', test_status: 'Confirmed', dueDate: '2025-06-20', remark: 'Implemented and tested. User can now state age directly.' }, // Completed
+            { id: 'issue8', name: 'Limited Bot Assistance (Editing Phase)', priority: 'P1', status: 'Pending', test_status: 'Not Confirmed', dueDate: '2025-07-25', remark: 'Developing in-line editing functionality, in early stages.' }
+        ];
+
+        // Load issues and botReleaseDate from localStorage or use initial values
+        function loadData() {
+            const storedIssues = localStorage.getItem('shurukar_ai_issues');
+            const storedBotReleaseDate = localStorage.getItem('shurukar_ai_bot_release_date');
+
+            if (storedIssues) {
+                issues = JSON.parse(storedIssues);
+            } else {
+                issues = initialIssues;
+                saveIssues();
             }
 
-            const categoryLabels = [
-                wrapText('Conversation & Flow', 16),
-                wrapText('Data & Field Management', 16), 
-                wrapText('Language & UI/UX', 16),
-                wrapText('User Assistance', 16)
-            ];
+            if (storedBotReleaseDate) {
+                botReleaseDate = storedBotReleaseDate;
+            } else {
+                botReleaseDate = '2025-09-30'; // Default release date
+                saveBotReleaseDate();
+            }
+            document.getElementById('botReleaseDateInput').value = botReleaseDate;
+            
+            renderAll();
+        }
 
-            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-            if (categoryCtx) {
-                new Chart(categoryCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            label: 'Number of High-Priority Issues',
-                            data: [1, 3, 3, 1], 
-                            backgroundColor: ['#800000', '#A52A2A', '#C75A5A', '#E28F8F'], /* Shades of maroon */
-                            borderRadius: 5,
-                            barPercentage: 0.7,
-                            categoryPercentage: 0.8
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    title: createTooltipTitleCallback()
-                                }
+        // Save issues to localStorage
+        function saveIssues() {
+            localStorage.setItem('shurukar_ai_issues', JSON.stringify(issues));
+        }
+
+        // Save bot release date to localStorage
+        function saveBotReleaseDate() {
+            localStorage.setItem('shurukar_ai_bot_release_date', botReleaseDate);
+        }
+
+        // Update bot release date from input
+        function updateBotReleaseDate() {
+            botReleaseDate = document.getElementById('botReleaseDateInput').value;
+            saveBotReleaseDate();
+            updateKPIs();
+        }
+
+        // Render issues based on current filter and sort order
+        function renderIssues() {
+            const issueListDiv = document.getElementById('issue-list');
+            issueListDiv.innerHTML = '';
+
+            let filteredIssues = issues;
+            if (currentFilter === 'pending') {
+                filteredIssues = issues.filter(issue => issue.status !== 'Completed');
+            } else if (currentFilter === 'completed') {
+                filteredIssues = issues.filter(issue => issue.status === 'Completed');
+            }
+
+            // Primary sort: by Priority (P0, P1, etc. - ascending numerical value)
+            // Secondary sort: by Due Date (chronological - ascending)
+            filteredIssues.sort((a, b) => {
+                const priorityA = priorityOrder[a.priority]; // Use direct order value
+                const priorityB = priorityOrder[b.priority]; // Use direct order value
+
+                // Handle cases where priority might be undefined or missing, pushing them to the end
+                if (priorityA === undefined && priorityB === undefined) return 0;
+                if (priorityA === undefined) return 1; // a is undefined, push a to end
+                if (priorityB === undefined) return -1; // b is undefined, push b to end
+
+                if (priorityA !== priorityB) {
+                    return priorityA - priorityB; // Sort by priority (P0 first, then P1, etc.)
+                }
+
+                // If priorities are the same, sort by due date
+                const dateA = new Date(a.dueDate);
+                const dateB = new Date(b.dueDate);
+                return dateA - dateB; // Then sort by due date
+            });
+
+            if (filteredIssues.length === 0) {
+                issueListDiv.innerHTML = '<p class="text-center text-gray-500">No issues to display for this filter.</p>';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today to start of day
+
+            filteredIssues.forEach(issue => {
+                const issueCard = document.createElement('div');
+                const dueDateObj = new Date(issue.dueDate);
+                dueDateObj.setHours(0, 0, 0, 0);
+
+                let isOverdue = false;
+                if (issue.status !== 'Completed' && dueDateObj < today) {
+                    isOverdue = true;
+                }
+
+                // Apply border color based on status or overdue, otherwise transparent to let priority badge visually lead
+                issueCard.className = 'card flex flex-col md:flex-row items-start md:items-center justify-between p-4 space-y-3 md:space-y-0 md:space-x-4 border-l-4 ' + 
+                                     (isOverdue ? 'border-[#800000]' : (issue.status === 'Completed' ? 'border-[#3A663A]' : `border-transparent`));
+                
+                issueCard.innerHTML = `
+                    <div class="flex-grow">
+                        <h3 class="text-lg font-semibold text-[#362C2A]">${issue.name}</h3>
+                        <div class="flex flex-wrap items-center gap-2 mt-1 text-sm">
+                            <span class="priority-badge priority-${issue.priority.toLowerCase()}">${issue.priority}</span>
+                            <span class="status-badge status-${issue.status.toLowerCase().replace(/\s/g, '')}">${issue.status}</span>
+                            <span class="status-badge test-${issue.test_status.toLowerCase().replace(/\s/g, '')}">${issue.test_status}</span>
+                            ${issue.dueDate ? `<span class="text-gray-600">Due: ${issue.dueDate}</span>` : ''}
+                            ${isOverdue ? '<span class="status-badge overdue-badge">Overdue</span>' : ''}
+                        </div>
+                        ${issue.remark ? `<p class="text-gray-600 text-sm mt-2"><strong>Remark:</strong> ${issue.remark}</p>` : ''}
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="btn-secondary text-sm px-3 py-1" onclick="editIssue('${issue.id}')">Edit</button>
+                        <button class="btn-secondary text-sm px-3 py-1" onclick="deleteIssue('${issue.id}')">Delete</button>
+                    </div>
+                `;
+                issueListDiv.appendChild(issueCard);
+            });
+        }
+
+        // Filter issues
+        function filterIssues(filterType) {
+            currentFilter = filterType;
+            renderIssues();
+        }
+
+        // Modal functions
+        const issueModal = document.getElementById('issueModal');
+        const issueForm = document.getElementById('issueForm');
+        const modalTitle = document.getElementById('modalTitle');
+
+        function openAddIssueModal() {
+            modalTitle.textContent = 'Add New Issue';
+            issueForm.reset();
+            document.getElementById('issueId').value = '';
+            // Set default priority to P2
+            document.getElementById('issuePriority').value = 'P2'; 
+            // Set default due date to today + 7 days
+            const today = new Date();
+            today.setDate(today.getDate() + 7);
+            document.getElementById('dueDate').value = today.toISOString().split('T')[0];
+            document.getElementById('developerRemark').value = ''; // Clear remark for new issue
+            issueModal.style.display = 'flex';
+        }
+
+        function openEditIssueModal(issue) {
+            modalTitle.textContent = 'Edit Issue';
+            document.getElementById('issueId').value = issue.id;
+            document.getElementById('issueName').value = issue.name;
+            document.getElementById('issuePriority').value = issue.priority;
+            document.getElementById('issueStatus').value = issue.status;
+            document.getElementById('testUpdate').value = issue.test_status;
+            document.getElementById('dueDate').value = issue.dueDate;
+            document.getElementById('developerRemark').value = issue.remark || ''; // Populate remark
+            issueModal.style.display = 'flex';
+        }
+
+        function closeIssueModal() {
+            issueModal.style.display = 'none';
+        }
+
+        // Add/Edit form submission
+        issueForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('issueId').value;
+            const name = document.getElementById('issueName').value;
+            const priority = document.getElementById('issuePriority').value;
+            const status = document.getElementById('issueStatus').value;
+            const test_status = document.getElementById('testUpdate').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const remark = document.getElementById('developerRemark').value;
+
+            if (id) {
+                // Edit existing issue
+                const index = issues.findIndex(issue => issue.id === id);
+                if (index !== -1) {
+                    issues[index] = { ...issues[index], name, priority, status, test_status, dueDate, remark };
+                }
+            } else {
+                // Add new issue
+                const newIssue = {
+                    id: 'issue' + Date.now(), // Simple unique ID
+                    name,
+                    priority,
+                    status,
+                    test_status,
+                    dueDate,
+                    remark
+                };
+                issues.push(newIssue);
+            }
+            saveIssues();
+            renderAll(); // Rerender all components
+            closeIssueModal();
+        });
+
+        // Edit existing issue
+        function editIssue(id) {
+            const issueToEdit = issues.find(issue => issue.id === id);
+            if (issueToEdit) {
+                openEditIssueModal(issueToEdit);
+            }
+        }
+
+        // Delete issue
+        function deleteIssue(id) {
+            if (confirm('Are you sure you want to delete this issue?')) {
+                issues = issues.filter(issue => issue.id !== id);
+                saveIssues();
+                renderAll(); // Rerender all components
+            }
+        }
+
+        // Chart.js - Issue Status Pie Chart
+        function renderIssueStatusChart() {
+            const completedIssues = issues.filter(issue => issue.status === 'Completed').length;
+            const pendingIssues = issues.filter(issue => issue.status !== 'Completed').length;
+
+            const ctx = document.getElementById('issueStatusChart').getContext('2d');
+
+            if (issueStatusChartInstance) {
+                issueStatusChartInstance.destroy(); // Destroy previous instance if it exists
+            }
+
+            issueStatusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending'],
+                    datasets: [{
+                        data: [completedIssues, pendingIssues],
+                        backgroundColor: ['#3A663A', '#800000'], // Green for completed, Maroon for pending
+                        borderColor: '#F8F8F8',
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 14, family: 'Inter' },
+                                color: '#362C2A'
                             }
                         },
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                grid: {
-                                    display: false,
-                                    drawBorder: false,
-                                },
-                                ticks: {
-                                   stepSize: 1,
-                                   color: '#6b7280'
-                                }
-                            },
-                            y: {
-                                grid: {
-                                    display: false,
-                                    drawBorder: false,
-                                },
-                                 ticks: {
-                                   color: '#374151',
-                                   font: {
-                                       weight: '500'
-                                   }
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                    return `${label}: ${value} (${percentage})`;
                                 }
                             }
                         }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Update KPIs (Overdue issues, Days until release)
+        function updateKPIs() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let overdueCount = 0;
+            issues.forEach(issue => {
+                if (issue.status !== 'Completed') {
+                    const dueDateObj = new Date(issue.dueDate);
+                    dueDateObj.setHours(0, 0, 0, 0);
+                    if (dueDateObj < today) {
+                        overdueCount++;
                     }
-                });
+                }
+            });
+            document.getElementById('overdueCount').textContent = overdueCount;
+
+            // Days until release
+            const releaseDateObj = new Date(botReleaseDate);
+            releaseDateObj.setHours(0, 0, 0, 0);
+            const diffTime = releaseDateObj.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            const daysUntilReleaseElement = document.getElementById('daysUntilRelease');
+            if (diffDays > 0) {
+                daysUntilReleaseElement.textContent = `(${diffDays} days until release)`;
+                daysUntilReleaseElement.className = 'text-gray-600 text-sm';
+            } else if (diffDays === 0) {
+                daysUntilReleaseElement.textContent = `(Release today!)`;
+                daysUntilReleaseElement.className = 'text-green-600 text-sm font-semibold';
+            } else {
+                daysUntilReleaseElement.textContent = `(Release was ${Math.abs(diffDays)} days ago)`;
+                daysUntilReleaseElement.className = 'text-red-600 text-sm font-semibold';
             }
-        });
+        }
+
+        // Renders all components (issues list, charts, KPIs)
+        function renderAll() {
+            renderIssues();
+            renderIssueStatusChart();
+            updateKPIs();
+        }
+
+        // Initial load
+        window.onload = loadData;
     </script>
+
 </body>
 </html>
