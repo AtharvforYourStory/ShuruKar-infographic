@@ -1,0 +1,1 @@
+# ShuruKar-infographic
