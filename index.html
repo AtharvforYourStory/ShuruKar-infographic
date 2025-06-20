@@ -12,7 +12,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #F8F8F8; /* A very light off-white, closer to white */
         }
         .chart-container {
             position: relative;
@@ -48,21 +48,21 @@
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
-            color: #166088;
+            color: #800000; /* Maroon */
             margin: 0.25rem 0;
             opacity: 0.6;
         }
         .kpi-card {
-            background: linear-gradient(145deg, #0B2D48, #166088);
+            background: linear-gradient(145deg, #800000, #A52A2A); /* Maroon gradient */
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .priority-red {
-            border-color: #ef4444;
-            background-color: #fef2f2;
+            border-color: #800000; /* Darker Maroon for "Red" priority */
+            background-color: #FFF0F0; /* Very light red/pink for background */
         }
          .priority-yellow {
-            border-color: #f59e0b;
-            background-color: #fffbeb;
+            border-color: #A52A2A; /* Brownish-Red for "Yellow" priority */
+            background-color: #FFF8EB; /* Very light orange/yellow for background */
         }
     </style>
 </head>
@@ -72,24 +72,24 @@
         <div class="max-w-7xl mx-auto">
             
             <header class="text-center mb-16">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-[#0B2D48]">Shurukar AI V2 Strategy</h1>
-                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">A visual action plan detailing high-priority fixes and the streamlined user flow for the upcoming Bihar Release.</p>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-[#800000]">Shurukar AI V2 Strategy</h1>
+                <p class="mt-4 text-lg text-gray-700 max-w-3xl mx-auto">A visual action plan detailing high-priority fixes and the streamlined user flow for the upcoming Bihar Release.</p>
             </header>
 
             <main>
                 <section id="overview" class="mb-16">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
                         <div class="kpi-card text-white p-6 rounded-xl shadow-lg">
-                            <h3 class="text-5xl font-bold">9</h3>
+                            <h3 class="text-5xl font-bold">8</h3>
                             <p class="mt-2 text-lg font-medium opacity-90">High-Priority Fixes</p>
                         </div>
                         <div class="bg-white p-6 rounded-xl shadow-lg">
-                            <h3 class="text-5xl font-bold text-[#166088]">3</h3>
-                            <p class="mt-2 text-lg font-medium text-gray-600">Future Improvements</p>
+                            <h3 class="text-5xl font-bold text-[#800000]">4</h3>
+                            <p class="mt-2 text-lg font-medium text-gray-700">Future Improvements</p>
                         </div>
                          <div class="bg-white p-6 rounded-xl shadow-lg">
-                            <h3 class="text-5xl font-bold text-[#5398BE]">5</h3>
-                            <p class="mt-2 text-lg font-medium text-gray-600">Steps in Lean Flow</p>
+                            <h3 class="text-5xl font-bold text-[#A52A2A]">6</h3>
+                            <p class="mt-2 text-lg font-medium text-gray-700">Steps in Lean Flow</p>
                         </div>
                     </div>
                 </section>
@@ -97,16 +97,16 @@
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-16">
                     
                     <div id="priority-breakdown" class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-bold text-center text-[#0B2D48] mb-4">Issue Priority Breakdown</h2>
-                        <p class="text-center text-gray-500 mb-6 text-sm">The majority of identified issues (75%) are high-priority fixes essential for the Bihar release.</p>
+                        <h2 class="text-2xl font-bold text-center text-[#800000] mb-4">Issue Priority Breakdown</h2>
+                        <p class="text-center text-gray-600 mb-6 text-sm">The distribution highlights critical items needing immediate attention for the Bihar release.</p>
                         <div class="chart-container h-64 md:h-72">
                             <canvas id="priorityChart"></canvas>
                         </div>
                     </div>
 
                     <div id="category-analysis" class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-bold text-center text-[#0B2D48] mb-4">Action Items by Category</h2>
-                         <p class="text-center text-gray-500 mb-6 text-sm">Feedback is concentrated on core bot logic, data handling, and language support.</p>
+                        <h2 class="text-2xl font-bold text-center text-[#800000] mb-4">Action Items by Category</h2>
+                         <p class="text-center text-gray-600 mb-6 text-sm">Feedback is concentrated on core bot behavior, data handling, and user interface elements.</p>
                         <div class="chart-container h-64 md:h-72">
                             <canvas id="categoryChart"></canvas>
                         </div>
@@ -114,41 +114,94 @@
                 </div>
 
                 <section id="high-priority-actions" class="mb-16">
-                    <h2 class="text-3xl font-bold text-center text-[#0B2D48] mb-8">High-Priority Action Plan</h2>
+                    <h2 class="text-3xl font-bold text-center text-[#800000] mb-8">High-Priority Action Plan (Mandatory Before Bihar Release)</h2>
                     <div class="space-y-4">
                         <div class="p-5 rounded-lg border-l-4 priority-red">
-                            <h3 class="text-lg font-semibold text-gray-800">Fix Core Logic & State Management</h3>
-                            <p class="text-gray-600 mt-1">Implement a controlled conversation reset and develop robust logic for handling stale WhatsApp button presses.</p>
+                            <h3 class="text-lg font-semibold text-gray-800">Conversation Reset Mechanism and User Sessions</h3>
+                            <p class="text-gray-700 mt-1">Users can reset anytime after submitting the problem statement and the solution. Restrict session flow to 5 times/user. Modify the last message from a "Thank You" to also prompt the user ("Let me know if you have a better idea!") where the user profile remains the same and clicking on Reset wipes off the user profile data.</p>
                         </div>
                         <div class="p-5 rounded-lg border-l-4 priority-red">
-                             <h3 class="text-lg font-semibold text-gray-800">Refine Data Collection Flow</h3>
-                            <p class="text-gray-600 mt-1">Remove 'Company Registration' fields to streamline flow. Integrate 'Age' into the main introduction. Add a 'Website Name' field for MVP Stage.</p>
+                             <h3 class="text-lg font-semibold text-gray-800">Dynamic Mandatory Field for Company Name</h3>
+                            <p class="text-gray-700 mt-1">Remove the field regarding company registration status and Company name entirely from the flow. This information is not as crucial as other data points.</p>
+                        </div>
+                        <div class="p-5 rounded-lg border-l-4 priority-red">
+                             <h3 class="text-lg font-semibold text-gray-800">Missing Essential Field (Website Name for MVP Stage)</h3>
+                            <p class="text-gray-700 mt-1">Add 'Website Name' as a distinct field in the `Data Fields to Capture` schema, ensuring it's included for `MVP Stage` users. It should be 'User Compulsion: true' for MVP stage to gather critical information.</p>
+                        </div>
+                        <div class="p-5 rounded-lg border-l-4 priority-red">
+                             <h3 class="text-lg font-semibold text-gray-800">Multi-Link Display Issue in Pitch Document</h3>
+                            <p class="text-gray-700 mt-1">Review and adjust the formatting logic to correctly handle and display multiple links. This may involve using bullet points, numbered lists, or clear line breaks to ensure readability and prevent truncation.</p>
                         </div>
                          <div class="p-5 rounded-lg border-l-4 priority-red">
-                             <h3 class="text-lg font-semibold text-gray-800">Improve Language & Formatting</h3>
-                            <p class="text-gray-600 mt-1">Enhance Hindi NLP to correctly process matras. Fix multi-link display issues and ensure consistent elaboration logic across stages.</p>
+                             <h3 class="text-lg font-semibold text-gray-800">Inconsistent Stage-Specific Elaboration (e.g., Solution)</h3>
+                            <p class="text-gray-700 mt-1">Review the `Description` and guidance provided for key fields (like 'Solution') in `Data Fields to Capture`. Introduce more detailed, stage-specific elaboration instructions for pitch document creation to ensure consistency.</p>
+                        </div>
+                         <div class="p-5 rounded-lg border-l-4 priority-red">
+                            <h3 class="text-lg font-semibold text-gray-800">Hindi Language Support Deficiencies</h3>
+                            <p class="text-gray-700 mt-1">Prioritize a deep dive into the bot's NLP capabilities for Hindi. This requires integrating a more robust Hindi NLP model, extensive testing with various Hindi inputs (including half-sounds and matras), and explicit instruction for accurate Devanagari script rendering.</p>
+                        </div>
+                         <div class="p-5 rounded-lg border-l-4 priority-red">
+                            <h3 class="text-lg font-semibold text-gray-800">Flexible Data Input (Age vs. DOB)</h3>
+                            <p class="text-gray-700 mt-1">Remove the separate question for age/DOB. Instead, ask the user to mention their age within their general introduction, allowing for more natural input.</p>
+                        </div>
+                         <div class="p-5 rounded-lg border-l-4 priority-red">
+                            <h3 class="text-lg font-semibold text-gray-800">Limited Bot Assistance (Editing Phase / No In-Line Editing)</h3>
+                            <p class="text-gray-700 mt-1">Expand bot functionality for the "make edits" phase, allowing users to specify which field they want to edit *during* the gathering for that field. This enables re-engagement in a focused information-gathering loop for specific fields.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="important-future-actions" class="mb-16">
+                    <h2 class="text-3xl font-bold text-center text-[#800000] mb-8">Important Improvements (To look out for in the future)</h2>
+                    <div class="space-y-4">
+                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
+                            <h3 class="text-lg font-semibold text-gray-800">Restrictive Response Formats</h3>
+                            <p class="text-gray-700 mt-1">Review all current "Yes/No" forced questions. Modify rules to interpret more natural language for confirmations or binary choices, reducing explicit "Yes/No" prompts.</p>
+                        </div>
+                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
+                            <h3 class="text-lg font-semibold text-gray-800">Stale WhatsApp Button Handling</h3>
+                            <p class="text-gray-700 mt-1">Develop robust logic to handle out-of-context or stale button presses. Bot should acknowledge confusion and redirect to current conversation context or offer clear navigation.</p>
+                        </div>
+                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
+                             <h3 class="text-lg font-semibold text-gray-800">Missing Pitch Document Data (City & State)</h3>
+                            <p class="text-gray-700 mt-1">Ensure 'Location' field (or new separate fields for city/state) is explicitly collected and included in the "About the Founding Team" or a dedicated "Contact/Location" section within the Pitch Document Creator's output.</p>
+                        </div>
+                        <div class="p-5 rounded-lg border-l-4 priority-yellow">
+                             <h3 class="text-lg font-semibold text-gray-800">Missing Feature (Share Location)</h3>
+                            <p class="text-gray-700 mt-1">Investigate the feasibility of integrating a "Share Location" feature via WhatsApp's API for streamlined location data collection, enhancing user convenience.</p>
                         </div>
                     </div>
                 </section>
 
                 <section id="bihar-release-flow" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-                    <h2 class="text-3xl font-bold text-center text-[#0B2D48] mb-8">Bihar Release: Lean Question Flow</h2>
+                    <h2 class="text-3xl font-bold text-center text-[#800000] mb-8">Bihar Release: Lean Question Flow</h2>
+                    <p class="text-center text-gray-600 mb-6 max-w-3xl mx-auto">This streamlined flow prioritizes essential information for quicker initial pitch document generation, with options for deeper elaboration based on user choice.</p>
                     <div class="flex flex-col items-center">
-                        <div class="flowchart-step bg-[#0B2D48] text-white w-full max-w-lg shadow-md">1. Welcome & Language Selection (English/Hindi)</div>
+                        <div class="flowchart-step bg-[#800000] text-white w-full max-w-lg shadow-md">1. Welcome & Language Selection (English/Hindi)</div>
                         <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#166088] w-full max-w-xl shadow-sm">2. Core Idea & Problem/Solution Articulation</div>
+                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#A52A2A] w-full max-w-xl shadow-sm">2. Core Idea & Problem/Solution Articulation</div>
                         <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#5398BE] w-full max-w-2xl shadow-sm">3. Founder Introduction (with embedded Name, Age, Email, Location)</div>
+                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#C75A5A] w-full max-w-2xl shadow-sm">3. Founder Introduction (with embedded Full Name, Age, Email, City & State)</div>
                         <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#84C5F4] w-full max-w-3xl shadow-sm">4. User Choice: Elaborate on Key Elements OR Generate Initial Pitch</div>
+                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#E28F8F] w-full max-w-3xl shadow-sm">4. User Choice: Elaborate on Key Elements (Revenue, GTM, etc.) OR Generate Initial Pitch</div>
                         <div class="flowchart-arrow">↓</div>
-                        <div class="flowchart-step bg-[#A6D9F7] text-[#0B2D48] w-full max-w-4xl shadow-sm">5. Display Pitch Summary & Offer Final Refinement OR Generate Full Pitch Document</div>
+                        <div class="flowchart-step bg-gray-100 border-l-4 border-[#F2C2C2] w-full max-w-4xl shadow-sm">5. Final Call: Any external links or additional information for the pitch document?</div>
+                        <div class="flowchart-arrow">↓</div>
+                        <div class="flowchart-step bg-[#F8F8F8] text-[#800000] w-full max-w-5xl shadow-sm">6. Display Pitch Summary & Offer Final Refinement OR Generate Full Pitch Document</div>
+                    </div>
+                    <div class="mt-12 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-bold text-[#800000] mb-4">Impact of the Above Process:</h3>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>Reduces the number of mandatory questions from 16 to a lean 7.</li>
+                            <li>Offers flexibility to dive into deeper details/fields for interested users.</li>
+                            <li>Brings in a more conversational flow to enhance user experience and reduce probing.</li>
+                        </ul>
                     </div>
                 </section>
             </main>
 
             <footer class="text-center mt-16 py-6 border-t border-gray-200">
-                <p class="text-gray-500">Visualizing the path to a smarter, more intuitive Shurukar AI.</p>
+                <p class="text-gray-600">Visualizing the path to a smarter, more intuitive Shurukar AI.</p>
             </footer>
         </div>
     </div>
@@ -196,9 +249,9 @@
                         labels: ['High Priority', 'Future Improvements'],
                         datasets: [{
                             label: 'Issues by Priority',
-                            data: [9, 3],
-                            backgroundColor: ['#ef4444', '#f59e0b'],
-                            borderColor: ['#ffffff'],
+                            data: [8, 4],
+                            backgroundColor: ['#800000', '#A52A2A'], /* Maroon and a lighter shade */
+                            borderColor: ['#F8F8F8'], /* Background color for border */
                             borderWidth: 5,
                             hoverOffset: 10
                         }]
@@ -211,7 +264,7 @@
                                 position: 'bottom',
                                 labels: {
                                     font: { size: 14, family: 'Inter' },
-                                    color: '#374151',
+                                    color: '#362C2A', /* Dark text, close to black */
                                     padding: 20,
                                 }
                             },
@@ -227,9 +280,10 @@
             }
 
             const categoryLabels = [
-                wrapText('Core Logic & Flow', 16),
-                wrapText('Data & Features', 16), 
-                wrapText('Language & UI', 16),
+                wrapText('Conversation & Flow', 16),
+                wrapText('Data & Field Management', 16), 
+                wrapText('Language & UI/UX', 16),
+                wrapText('User Assistance', 16)
             ];
 
             const categoryCtx = document.getElementById('categoryChart').getContext('2d');
@@ -239,9 +293,9 @@
                     data: {
                         labels: categoryLabels,
                         datasets: [{
-                            label: 'Number of Issues',
-                            data: [5, 4, 3], 
-                            backgroundColor: ['#166088', '#5398BE', '#84C5F4'],
+                            label: 'Number of High-Priority Issues',
+                            data: [1, 3, 3, 1], 
+                            backgroundColor: ['#800000', '#A52A2A', '#C75A5A', '#E28F8F'], /* Shades of maroon */
                             borderRadius: 5,
                             barPercentage: 0.7,
                             categoryPercentage: 0.8
