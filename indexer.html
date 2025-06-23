@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shurukar AI V2 - Project Tracking Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F8F8; /* Off-white from brand */
+            color: #362C2A; /* Dark text from brand */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: #800000; /* Maroon */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #A52A2A; /* Lighter Maroon */
+        }
+        .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #362C2A;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db; /* Darker gray */
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* Full rounded */
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        /* Updated status badge colors to match pie chart request */
+        .status-todo { background-color: #F2C2C2; color: #800000; } 
+        .status-inprogress { background-color: #FFCCCC; color: #C75A5A; } /* Faint Pink */
+        .status-review { background-color: #FFEFD5; color: #E6A148; } /* Yellow */
+        .status-completed { background-color: #E6F3E6; color: #3A663A; } /* Green */
+        
+        .test-not-confirmed { background-color: #FEE2E2; color: #B91C1C; } /* Lighter red for not confirmed */
+        .test-confirmed { background-color: #D1FAE5; color: #065F46; } /* Lighter green for confirmed */
+
+        .overdue-badge { background-color: #800000; color: white; } /* Maroon for overdue */
+
+        /* Priority Badges */
+        .priority-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .priority-p0 { background-color: #800000; color: white; } /* Dark Maroon - highest priority */
+        .priority-p1 { background-color: #A52A2A; color: white; } /* Medium Maroon */
+        .priority-p2 { background-color: #C75A5A; color: white; } /* Lighter Maroon */
+        .priority-p3 { background-color: #E28F8F; color: #800000; } /* Even lighter Maroon */
+        .priority-p4 { background-color: #F2C2C2; color: #800000; } /* Lightest Maroon */
+
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .chart-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Fixed height for consistency */
+            max-width: 400px; /* Max width for larger screens */
+            margin: auto;
+        }
+
+        /* Kanban Specific Styles */
+        .kanban-column {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            min-height: 200px; /* Ensure columns have some height even if empty */
+        }
+        .kanban-column-header {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #800000; /* Maroon */
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .kanban-item {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            cursor: grab;
+            border-left: 4px solid; /* For status/overdue indication */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .kanban-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+        .kanban-item.dragging {
+            opacity: 0.4;
+        }
+        .kanban-column.drag-over {
+            border: 2px dashed #A52A2A; /* Lighter Maroon for drag-over feedback */
+            background-color: #fef2f2; /* Light red background */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-[#800000] mb-2">Shurukar AI V2 - Project Tracking</h1>
+            <p class="text-lg text-gray-700">Track and manage the progress of high-priority bot fixes.</p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-5 text-center">
+                <h2 class="text-xl font-bold text-[#800000] mb-2">Bot Release Date</h2>
+                <input type="date" id="botReleaseDateInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" onchange="updateBotReleaseDate()">
+                <p id="daysUntilRelease" class="text-gray-600 text-sm"></p>
+            </div>
+            <div class="card p-5">
+                <h2 class="text-xl font-bold text-[#800000] text-center mb-4">Issues Status</h2>
+                <div class="chart-canvas-container">
+                    <canvas id="issueStatusChart"></canvas>
+                </div>
+            </div>
+            <div class="card p-5 text-center">
+                <h2 class="text-xl font-bold text-[#800000] mb-2">Overdue Issues</h2>
+                <p id="overdueCount" class="text-5xl font-bold text-[#D24A32]"></p>
+                <p class="text-gray-600 mt-2">Issues past their due date.</p>
+            </div>
+        </section>
+
+        <section class="mb-8 flex flex-wrap justify-center gap-4">
+            <button class="btn-primary" onclick="filterIssues('all')">All Issues</button>
+            <button class="btn-primary" onclick="filterIssues('pending')">Pending Issues</button>
+            <button class="btn-primary" onclick="filterIssues('completed')">Completed Issues</button>
+        </section>
+
+        <section class="card mb-8">
+            <h2 class="text-2xl font-bold text-[#800000] mb-4">Kanban Board</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="kanban-board">
+                <!-- To Do Column -->
+                <div id="column-To Do" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'To Do')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">To Do</h3>
+                    <div id="issues-To Do" class="issue-list-container"></div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div id="column-In Progress" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'In Progress')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">In Progress</h3>
+                    <div id="issues-In Progress" class="issue-list-container"></div>
+                </div>
+
+                <!-- Review Column -->
+                <div id="column-Review" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'Review')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">Review</h3>
+                    <div id="issues-Review" class="issue-list-container"></div>
+                </div>
+
+                <!-- Completed Column -->
+                <div id="column-Completed" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'Completed')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">Completed</h3>
+                    <div id="issues-Completed" class="issue-list-container"></div>
+                </div>
+            </div>
+            <button class="btn-primary mt-6 w-full md:w-auto" onclick="openAddIssueModal()">Add New Issue</button>
+        </section>
+    </div>
+
+    <!-- Add/Edit Issue Modal -->
+    <div id="issueModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeIssueModal()">&times;</span>
+            <h2 id="modalTitle" class="text-2xl font-bold text-[#800000] mb-4">Add New Issue</h2>
+            <form id="issueForm" class="space-y-4">
+                <div>
+                    <label for="issueName" class="block text-gray-700 text-sm font-bold mb-2">Issue Name:</label>
+                    <input type="text" id="issueName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="issuePriority" class="block text-gray-700 text-sm font-bold mb-2">Priority:</label>
+                    <select id="issuePriority" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="P0">P0 - Critical</option>
+                        <option value="P1">P1 - High</option>
+                        <option value="P2">P2 - Medium</option>
+                        <option value="P3">P3 - Low</option>
+                        <option value="P4">P4 - Very Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="issueKanbanStage" class="block text-gray-700 text-sm font-bold mb-2">Kanban Stage:</label>
+                    <select id="issueKanbanStage" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Review">Review</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="testUpdate" class="block text-gray-700 text-sm font-bold mb-2">Confirmatory Test Update:</label>
+                    <select id="testUpdate" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Not Confirmed">Not Confirmed</option>
+                        <option value="Confirmed">Confirmed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dueDate" class="block text-gray-700 text-sm font-bold mb-2">Due Date:</label>
+                    <input type="date" id="dueDate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="developerRemark" class="block text-gray-700 text-sm font-bold mb-2">Developer Remark:</label>
+                    <textarea id="developerRemark" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
+                </div>
+                <input type="hidden" id="issueId">
+                <button type="submit" class="btn-primary w-full">Save Issue</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let issues = [];
+        let currentFilter = 'all';
+        let botReleaseDate = '';
+        let issueStatusChartInstance; // To store the Chart.js instance
+
+        // Priority order mapping (P0 = highest priority, P4 = lowest)
+        const priorityOrder = { 'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4 };
+
+        // Initial High-Priority Issues (with due dates, priorities, and Kanban stages)
+        // Ensured all statuses map directly to Kanban columns for proper display.
+        const initialIssues = [
+            { id: 'issue1', name: 'Conversation Reset Mechanism and User Sessions', priority: 'P0', status: 'To Do', test_status: 'Not Confirmed', dueDate: '2025-07-15', remark: 'Working on refining session state management.' },
+            { id: 'issue2', name: 'Company Name Field Removal', priority: 'P1', status: 'In Progress', test_status: 'Not Confirmed', dueDate: '2025-06-25', remark: 'Flow adjustments are almost done, testing required.' },
+            { id: 'issue3', name: 'Missing Essential Field (Website Name for MVP Stage)', priority: 'P1', status: 'To Do', test_status: 'Not Confirmed', dueDate: '2025-08-01', remark: 'Schema updated, awaiting frontend integration.' },
+            { id: 'issue4', name: 'Multi-Link Display Issue in Pitch Document', priority: 'P2', status: 'Review', test_status: 'Not Confirmed', dueDate: '2025-06-18', remark: 'Investigating CSS layout issues with multiple URLs. Overdue, prioritizing this week.' }, // Overdue
+            { id: 'issue5', name: 'Inconsistent Stage-Specific Elaboration', priority: 'P2', status: 'Review', test_status: 'Not Confirmed', dueDate: '2025-06-10', remark: 'Reviewing current elaboration rules for consistency. Overdue.' }, // Overdue
+            { id: 'issue6', name: 'Hindi Language Support Deficiencies', priority: 'P0', status: 'To Do', test_status: 'Not Confirmed', dueDate: '2025-08-15', remark: 'Researching better NLP models for Hindi. High complexity.' },
+            { id: 'issue7', name: 'Flexible Data Input (Age vs. DOB)', priority: 'P3', status: 'Completed', test_status: 'Confirmed', dueDate: '2025-06-20', remark: 'Implemented and tested. User can now state age directly.' }, // Completed
+            { id: 'issue8', name: 'Limited Bot Assistance (Editing Phase)', priority: 'P1', status: 'In Progress', test_status: 'Not Confirmed', dueDate: '2025-07-25', remark: 'Developing in-line editing functionality, in early stages.' }
+        ];
+
+        // Load issues and botReleaseDate from localStorage or use initial values
+        function loadData() {
+            const storedIssues = localStorage.getItem('shurukar_ai_issues');
+            const storedBotReleaseDate = localStorage.getItem('shurukar_ai_bot_release_date');
+
+            if (storedIssues) {
+                issues = JSON.parse(storedIssues);
+            } else {
+                issues = initialIssues;
+                saveIssues();
+            }
+
+            if (storedBotReleaseDate) {
+                botReleaseDate = storedBotReleaseDate;
+            } else {
+                botReleaseDate = '2025-09-30'; // Default release date
+                saveBotReleaseDate();
+            }
+            document.getElementById('botReleaseDateInput').value = botReleaseDate;
+            
+            renderAll();
+        }
+
+        // Save issues to localStorage
+        function saveIssues() {
+            localStorage.setItem('shurukar_ai_issues', JSON.stringify(issues));
+        }
+
+        // Save bot release date to localStorage
+        function saveBotReleaseDate() {
+            localStorage.setItem('shurukar_ai_bot_release_date', botReleaseDate);
+        }
+
+        // Update bot release date from input
+        function updateBotReleaseDate() {
+            botReleaseDate = document.getElementById('botReleaseDateInput').value;
+            saveBotReleaseDate();
+            updateKPIs();
+        }
+
+        // Render issues into their respective Kanban columns
+        function renderIssues() {
+            const kanbanColumns = ['To Do', 'In Progress', 'Review', 'Completed'];
+            kanbanColumns.forEach(column => {
+                const columnDiv = document.getElementById(`issues-${column}`);
+                if (columnDiv) {
+                    columnDiv.innerHTML = ''; // Clear column
+                }
+            });
+
+            let issuesToDisplay = issues;
+            // Apply global filter if not 'all'
+            if (currentFilter === 'pending') {
+                // 'Pending' filter should show 'To Do', 'In Progress', 'Review'
+                issuesToDisplay = issues.filter(issue => issue.status !== 'Completed');
+            } else if (currentFilter === 'completed') {
+                issuesToDisplay = issues.filter(issue => issue.status === 'Completed');
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            console.log("Total issues to display after global filter:", issuesToDisplay.length); // Debugging log
+
+            kanbanColumns.forEach(columnName => {
+                const columnContainer = document.getElementById(`issues-${columnName}`);
+                if (!columnContainer) return; // Skip if column container doesn't exist
+
+                let issuesInColumn = issuesToDisplay.filter(issue => issue.status === columnName);
+                console.log(`Issues in column "${columnName}":`, issuesInColumn.length); // Debugging log
+
+                // Sort issues within the column by Priority then by Due Date
+                issuesInColumn.sort((a, b) => {
+                    const priorityA = priorityOrder[a.priority];
+                    const priorityB = priorityOrder[b.priority];
+
+                    if (priorityA === undefined && priorityB === undefined) return 0;
+                    if (priorityA === undefined) return 1;
+                    if (priorityB === undefined) return -1;
+
+                    if (priorityA !== priorityB) {
+                        return priorityA - priorityB;
+                    }
+
+                    const dateA = new Date(a.dueDate);
+                    const dateB = new Date(b.dueDate);
+                    return dateA - dateB;
+                });
+
+                issuesInColumn.forEach(issue => {
+                    const issueCard = document.createElement('div');
+                    issueCard.className = 'kanban-item';
+                    issueCard.setAttribute('draggable', true);
+                    issueCard.setAttribute('data-issue-id', issue.id);
+
+                    const dueDateObj = new Date(issue.dueDate);
+                    dueDateObj.setHours(0, 0, 0, 0);
+                    let isOverdue = false;
+                    if (issue.status !== 'Completed' && dueDateObj < today) {
+                        isOverdue = true;
+                    }
+
+                    // Dynamic border color based on status or overdue
+                    issueCard.style.borderLeftColor = isOverdue ? '#800000' : 
+                                                    (issue.status === 'Completed' ? '#3A663A' : 
+                                                    (issue.status === 'To Do' ? '#800000' :
+                                                    (issue.status === 'In Progress' ? '#C75A5A' : /* Matching faint pink's text/border for In Progress */
+                                                    (issue.status === 'Review' ? '#E6A148' : '#F2C2C2')))); /* Default to lightest maroon */
+                    
+                    issueCard.innerHTML = `
+                        <div class="flex-grow">
+                            <h3 class="text-lg font-semibold text-[#362C2A]">${issue.name}</h3>
+                            <div class="flex flex-wrap items-center gap-2 mt-1 text-sm">
+                                <span class="priority-badge priority-${issue.priority.toLowerCase()}">${issue.priority}</span>
+                                <span class="status-badge status-${issue.status.toLowerCase().replace(/\s/g, '')}">${issue.status}</span>
+                                <span class="status-badge test-${issue.test_status.toLowerCase().replace(/\s/g, '')}">${issue.test_status}</span>
+                                ${issue.dueDate ? `<span class="text-gray-600">Due: ${issue.dueDate}</span>` : ''}
+                                ${isOverdue ? '<span class="status-badge overdue-badge">Overdue</span>' : ''}
+                            </div>
+                            ${issue.remark ? `<p class="text-gray-600 text-sm mt-2"><strong>Remark:</strong> ${issue.remark}</p>` : ''}
+                        </div>
+                        <div class="flex space-x-2 mt-3">
+                            <button class="btn-secondary text-sm px-3 py-1" onclick="editIssue('${issue.id}')">Edit</button>
+                            <button class="btn-secondary text-sm px-3 py-1" onclick="deleteIssue('${issue.id}')">Delete</button>
+                        </div>
+                    `;
+                    columnContainer.appendChild(issueCard);
+                });
+            });
+
+            // Add drag/drop event listeners to dynamically created items
+            document.querySelectorAll('.kanban-item').forEach(item => {
+                item.addEventListener('dragstart', dragStart);
+            });
+        }
+
+        // Drag and Drop Functions
+        let draggedItemId = null;
+
+        function allowDrop(event) {
+            event.preventDefault(); // Necessary to allow drop
+            const targetColumn = event.currentTarget;
+            if (!targetColumn.classList.contains('drag-over')) {
+                 targetColumn.classList.add('drag-over');
+            }
+        }
+
+        function dragEnter(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function dragStart(event) {
+            draggedItemId = event.target.getAttribute('data-issue-id');
+            event.dataTransfer.setData('text/plain', draggedItemId);
+            event.target.classList.add('dragging');
+        }
+
+        function drop(event, newStage) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+
+            const id = event.dataTransfer.getData('text/plain');
+            const draggedElement = document.querySelector(`.kanban-item[data-issue-id="${id}"]`);
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+            }
+
+            const issueIndex = issues.findIndex(issue => issue.id === id);
+            if (issueIndex > -1) {
+                issues[issueIndex].status = newStage; // Update the Kanban stage
+                saveIssues();
+                renderAll(); // Re-render the whole board
+            }
+        }
+
+
+        // Filter issues
+        function filterIssues(filterType) {
+            currentFilter = filterType;
+            // Hide/show columns based on filter
+            const kanbanColumns = ['To Do', 'In Progress', 'Review', 'Completed'];
+            kanbanColumns.forEach(columnName => {
+                const columnElement = document.getElementById(`column-${columnName}`);
+                if (columnElement) {
+                    if (filterType === 'all') {
+                        columnElement.style.display = 'block'; 
+                    } else if (filterType === 'pending') {
+                        if (columnName === 'Completed') {
+                            columnElement.style.display = 'none';
+                        } else {
+                            columnElement.style.display = 'block';
+                        }
+                    } else if (filterType === 'completed') {
+                        if (columnName === 'Completed') {
+                            columnElement.style.display = 'block';
+                        } else {
+                            columnElement.style.display = 'none';
+                        }
+                    }
+                }
+            });
+            renderIssues(); // Re-render issues into the visible columns
+        }
+
+
+        // Modal functions
+        const issueModal = document.getElementById('issueModal');
+        const issueForm = document.getElementById('issueForm');
+        const modalTitle = document.getElementById('modalTitle');
+
+        function openAddIssueModal() {
+            modalTitle.textContent = 'Add New Issue';
+            issueForm.reset();
+            document.getElementById('issueId').value = '';
+            // Set default priority to P2
+            document.getElementById('issuePriority').value = 'P2'; 
+            // Set default Kanban stage to 'To Do'
+            document.getElementById('issueKanbanStage').value = 'To Do';
+            // Set default due date to today + 7 days
+            const today = new Date();
+            today.setDate(today.getDate() + 7);
+            document.getElementById('dueDate').value = today.toISOString().split('T')[0];
+            document.getElementById('developerRemark').value = ''; // Clear remark for new issue
+            issueModal.style.display = 'flex';
+        }
+
+        function openEditIssueModal(issue) {
+            modalTitle.textContent = 'Edit Issue';
+            document.getElementById('issueId').value = issue.id;
+            document.getElementById('issueName').value = issue.name;
+            document.getElementById('issuePriority').value = issue.priority;
+            document.getElementById('issueKanbanStage').value = issue.status; // status now holds kanban stage
+            document.getElementById('testUpdate').value = issue.test_status;
+            document.getElementById('dueDate').value = issue.dueDate;
+            document.getElementById('developerRemark').value = issue.remark || ''; // Populate remark
+            issueModal.style.display = 'flex';
+        }
+
+        function closeIssueModal() {
+            issueModal.style.display = 'none';
+        }
+
+        // Add/Edit form submission
+        issueForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('issueId').value;
+            const name = document.getElementById('issueName').value;
+            const priority = document.getElementById('issuePriority').value;
+            const kanbanStage = document.getElementById('issueKanbanStage').value; // Get from new dropdown
+            const test_status = document.getElementById('testUpdate').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const remark = document.getElementById('developerRemark').value;
+
+            if (id) {
+                // Edit existing issue
+                const index = issues.findIndex(issue => issue.id === id);
+                if (index !== -1) {
+                    issues[index] = { ...issues[index], name, priority, status: kanbanStage, test_status, dueDate, remark };
+                }
+            } else {
+                // Add new issue
+                const newIssue = {
+                    id: 'issue' + Date.now(), // Simple unique ID
+                    name,
+                    priority,
+                    status: kanbanStage, // Store kanban stage in 'status'
+                    test_status,
+                    dueDate,
+                    remark
+                };
+                issues.push(newIssue);
+            }
+            saveIssues();
+            renderAll(); // Rerender all components
+            closeIssueModal();
+        });
+
+        // Edit existing issue (called from card buttons)
+        function editIssue(id) {
+            const issueToEdit = issues.find(issue => issue.id === id);
+            if (issueToEdit) {
+                openEditIssueModal(issueToEdit);
+            }
+        }
+
+        // Delete issue (called from card buttons)
+        function deleteIssue(id) {
+            if (confirm('Are you sure you want to delete this issue?')) {
+                issues = issues.filter(issue => issue.id !== id);
+                saveIssues();
+                renderAll(); // Rerender all components
+            }
+        }
+
+        // Chart.js - Issue Status Pie Chart
+        function renderIssueStatusChart() {
+            const todoIssues = issues.filter(issue => issue.status === 'To Do').length;
+            const inProgressIssues = issues.filter(issue => issue.status === 'In Progress').length;
+            const reviewIssues = issues.filter(issue => issue.status === 'Review').length;
+            const completedIssues = issues.filter(issue => issue.status === 'Completed').length;
+
+            const ctx = document.getElementById('issueStatusChart').getContext('2d');
+
+            if (issueStatusChartInstance) {
+                issueStatusChartInstance.destroy(); // Destroy previous instance if it exists
+            }
+
+            issueStatusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Review', 'Completed'],
+                    datasets: [{
+                        data: [todoIssues, inProgressIssues, reviewIssues, completedIssues],
+                        backgroundColor: ['#800000', '#FFCCCC', '#E6A148', '#3A663A'], // Red, Faint Pink, Yellow, Green
+                        borderColor: '#F8F8F8',
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 14, family: 'Inter' },
+                                color: '#362C2A'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                    return `${label}: ${value} (${percentage})`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Update KPIs (Overdue issues, Days until release)
+        function updateKPIs() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let overdueCount = 0;
+            issues.forEach(issue => {
+                if (issue.status !== 'Completed') { // Only count if not completed
+                    const dueDateObj = new Date(issue.dueDate);
+                    dueDateObj.setHours(0, 0, 0, 0);
+                    if (dueDateObj < today) {
+                        overdueCount++;
+                    }
+                }
+            });
+            document.getElementById('overdueCount').textContent = overdueCount;
+
+            // Days until release
+            const releaseDateObj = new Date(botReleaseDate);
+            releaseDateObj.setHours(0, 0, 0, 0);
+            const diffTime = releaseDateObj.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            const daysUntilReleaseElement = document.getElementById('daysUntilRelease');
+            if (diffDays > 0) {
+                daysUntilReleaseElement.textContent = `(${diffDays} days until release)`;
+                daysUntilReleaseElement.className = 'text-gray-600 text-sm';
+            } else if (diffDays === 0) {
+                daysUntilReleaseElement.textContent = `(Release today!)`;
+                daysUntilReleaseElement.className = 'text-green-600 text-sm font-semibold';
+            } else {
+                daysUntilReleaseElement.textContent = `(Release was ${Math.abs(diffDays)} days ago)`;
+                daysUntilReleaseElement.className = 'text-red-600 text-sm font-semibold';
+            }
+        }
+
+        // Renders all components (issues list, charts, KPIs)
+        function renderAll() {
+            renderIssues(); // Renders into Kanban columns
+            renderIssueStatusChart();
+            updateKPIs();
+        }
+
+        // Initial load
+        window.onload = loadData;
+    </script>
+
+</body>
+</html>
