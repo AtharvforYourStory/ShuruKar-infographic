@@ -355,11 +355,14 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            console.log("Total issues to display after global filter:", issuesToDisplay.length); // Debugging log
+
             kanbanColumns.forEach(columnName => {
                 const columnContainer = document.getElementById(`issues-${columnName}`);
                 if (!columnContainer) return; // Skip if column container doesn't exist
 
                 let issuesInColumn = issuesToDisplay.filter(issue => issue.status === columnName);
+                console.log(`Issues in column "${columnName}":`, issuesInColumn.length); // Debugging log
 
                 // Sort issues within the column by Priority then by Due Date
                 issuesInColumn.sort((a, b) => {
