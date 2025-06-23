@@ -19,7 +19,6 @@
         window.firebaseApp = null;
         window.db = null;
         window.auth = null;
-        // window.currentUserId = null; // No longer used for data path, but available if needed for other auth-specific features
         window.isAuthReady = false; // Flag to ensure Firestore ops only after auth
 
         // Initialize Firebase
@@ -44,7 +43,6 @@
                 // Authenticate anonymously or with custom token if provided
                 onAuthStateChanged(window.auth, async (user) => {
                     if (user) {
-                        // window.currentUserId = user.uid; // User ID is still available if needed for other purposes
                         console.log("Authenticated for shared access. User ID:", user.uid);
                         window.isAuthReady = true;
                         window.loadInitialDataFromFirestore(); // Load data once authenticated
@@ -407,46 +405,46 @@
             // No longer displaying currentUserId as it's not the primary data partition now, but still useful for auth state.
             document.getElementById('displayUserId').textContent = window.auth.currentUser?.uid || 'N/A';
 
+            showLoadingOverlay(); // Show loading overlay at the start of data load
 
             try {
-                // Fetch issues
+                // Check and populate issues if the collection is empty
                 const issuesSnapshot = await getDocs(issuesColRef);
                 if (issuesSnapshot.empty) {
                     console.log("No issues found in public Firestore. Populating with initial data.");
-                    for (const issue of initialIssues) {
-                        await setDoc(doc(issuesColRef, issue.id), issue); // Use setDoc with ID to keep original IDs
-                    }
-                    issues = initialIssues;
-                } else {
-                    issues = issuesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const batchWrites = initialIssues.map(issue => setDoc(doc(issuesColRef, issue.id), issue));
+                    await Promise.all(batchWrites); // Wait for all initial issues to be written
                 }
 
-                // Fetch bot release date
+                // Check and populate bot release date if the document doesn't exist
                 const botDateDoc = await getDoc(botReleaseDateDocRef);
                 if (!botDateDoc.exists()) {
                     console.log("No bot release date found in public Firestore. Setting default.");
                     botReleaseDate = '2025-09-30';
                     await setDoc(botReleaseDateDocRef, { date: botReleaseDate });
-                } else {
-                    botReleaseDate = botDateDoc.data().date;
                 }
-                document.getElementById('botReleaseDateInput').value = botReleaseDate;
 
-                renderAll();
-                hideLoadingOverlay(); // Hide overlay once data is loaded
-
-                // Set up real-time listeners AFTER initial load
-                // These listeners will keep the UI updated for all users in real-time
+                // Set up real-time listeners - these will trigger the first renderAll() when data arrives
                 onSnapshot(issuesColRef, (snapshot) => {
                     issues = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderAll();
+                    renderAll(); // Renders UI with current data
+                    hideLoadingOverlay(); // Hide overlay after the first set of issues has rendered
                 }, (error) => {
                     console.error("Error listening to issues:", error);
+                    // Fallback to initialIssues for display if listener fails (though data won't be synced)
+                    issues = initialIssues; 
+                    renderAll();
+                    hideLoadingOverlay();
                 });
 
-                onSnapshot(botReleaseDateDocRef, (doc) => {
-                    if (doc.exists()) {
-                        botReleaseDate = doc.data().date;
+                onSnapshot(botReleaseDateDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        botReleaseDate = docSnap.data().date;
+                        document.getElementById('botReleaseDateInput').value = botReleaseDate;
+                        updateKPIs();
+                    } else {
+                        // Handle case where doc might be deleted, revert to default
+                        botReleaseDate = '2025-09-30'; 
                         document.getElementById('botReleaseDateInput').value = botReleaseDate;
                         updateKPIs();
                     }
@@ -456,7 +454,7 @@
 
             } catch (error) {
                 console.error("Error loading data from Firestore:", error);
-                // Fallback to initialIssues if Firestore load fails
+                // Final fallback if fetching initial data or setting up listeners completely fails
                 issues = initialIssues;
                 botReleaseDate = '2025-09-30';
                 document.getElementById('botReleaseDateInput').value = botReleaseDate;
@@ -464,6 +462,10 @@
                 hideLoadingOverlay();
             }
         };
+
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = 'flex';
+        }
 
         function hideLoadingOverlay() {
             loadingOverlay.style.display = 'none';
@@ -718,7 +720,7 @@
             } catch (error) {
                 console.error("Error saving issue to Firestore:", error);
             }
-            closeIssueModal();
+            closeModal();
         });
 
         // Edit existing issue (called from card buttons)
