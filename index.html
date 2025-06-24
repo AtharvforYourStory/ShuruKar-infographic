@@ -3,143 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Kanban Board</title>
+    <title>Shurukar AI V2 - Project Tracking Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F8F8; /* Off-white from brand */
+            color: #362C2A; /* Dark text from brand */
         }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .kanban-board {
-            display: flex;
-            gap: 20px;
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            overflow-x: auto;
-            padding-bottom: 20px;
+            padding: 2rem;
         }
-
-        .column {
-            background: white;
-            border-radius: 10px;
-            min-width: 300px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
         }
-
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
+        .btn-primary {
+            background-color: #800000; /* Maroon */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
         }
+        .btn-primary:hover {
+            background-color: #A52A2A; /* Lighter Maroon */
+        }
+        .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #362C2A;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db; /* Darker gray */
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* Full rounded */
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        /* Updated status badge colors to match pie chart request */
+        .status-todo { background-color: #F2C2C2; color: #800000; } 
+        .status-inprogress { background-color: #FFCCCC; color: #C75A5A; } /* Faint Pink */
+        .status-review { background-color: #FFEFD5; color: #E6A148; } /* Yellow */
+        .status-completed { background-color: #E6F3E6; color: #3A663A; } /* Green */
+        
+        .test-not-confirmed { background-color: #FEE2E2; color: #B91C1C; } /* Lighter red for not confirmed */
+        .test-confirmed { background-color: #D1FAE5; color: #065F46; } /* Lighter green for confirmed */
 
-        .column-title {
-            font-size: 18px;
+        .overdue-badge { background-color: #800000; color: white; } /* Maroon for overdue */
+
+        /* Priority Badges */
+        .priority-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: #333;
         }
+        .priority-p0 { background-color: #800000; color: white; } /* Dark Maroon - highest priority */
+        .priority-p1 { background-color: #A52A2A; color: white; } /* Medium Maroon */
+        .priority-p2 { background-color: #C75A5A; color: white; } /* Lighter Maroon */
+        .priority-p3 { background-color: #E28F8F; color: #800000; } /* Even lighter Maroon */
+        .priority-p4 { background-color: #F2C2C2; color: #800000; } /* Lightest Maroon */
 
-        .add-task-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .add-task-btn:hover {
-            background: #45a049;
-        }
-
-        .task-card {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: move;
-            transition: all 0.3s ease;
-        }
-
-        .task-card:hover {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .task-card.dragging {
-            opacity: 0.5;
-        }
-
-        .task-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #333;
-        }
-
-        .task-description {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .task-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            color: #888;
-        }
-
-        .delete-btn {
-            background: #f44336;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 10px;
-        }
-
-        .delete-btn:hover {
-            background: #da190b;
-        }
-
-        .status-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-        }
-
-        .status-connected {
-            background: #4CAF50;
-        }
-
-        .status-disconnected {
-            background: #f44336;
-        }
 
         .modal {
             display: none;
@@ -149,341 +86,831 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
         }
-
         .modal-content {
-            background-color: white;
-            margin: 15% auto;
+            background-color: #fefefe;
+            margin: auto;
             padding: 20px;
-            border-radius: 10px;
-            width: 400px;
-            max-width: 90%;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
         }
-
-        .modal input, .modal textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
         }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
-            font-weight: 600;
+        }
+        .chart-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Fixed height for consistency */
+            max-width: 400px; /* Max width for larger screens */
+            margin: auto;
         }
 
-        .btn-primary {
-            background: #2196F3;
-            color: white;
+        /* Kanban Specific Styles */
+        .kanban-column {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            min-height: 200px; /* Ensure columns have some height even if empty */
         }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
+        .kanban-column-header {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #800000; /* Maroon */
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .kanban-item {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            cursor: grab;
+            border-left: 4px solid; /* For status/overdue indication */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .kanban-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+        .kanban-item.dragging {
+            opacity: 0.4;
+        }
+        .kanban-column.drag-over {
+            border: 2px dashed #A52A2A; /* Lighter Maroon for drag-over feedback */
+            background-color: #fef2f2; /* Light red background */
+        }
+        /* Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            font-size: 1.5rem;
+            color: #800000;
+            font-weight: bold;
         }
     </style>
 </head>
-<body>
-    <div class="status-indicator" id="status">Connecting...</div>
-    
-    <div class="header">
-        <h1>Real-Time Kanban Board</h1>
-        <p>Collaborate with your team in real-time</p>
-    </div>
+<body class="antialiased">
+    <div id="loadingOverlay">Loading Dashboard...</div>
 
-    <div class="kanban-board" id="kanban-board">
-        <div class="column" data-status="todo">
-            <div class="column-header">
-                <div class="column-title">To Do</div>
-                <button class="add-task-btn" onclick="openAddTaskModal('todo')">+ Add Task</button>
+    <div class="container">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-[#800000] mb-2">Shurukar AI V2 - Project Tracking</h1>
+            <p class="text-lg text-gray-700">Track and manage the progress of high-priority bot fixes.</p>
+            <p class="text-gray-500 text-xs mt-1">Authenticated as: <span id="displayUserId">Loading...</span></p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-5 text-center">
+                <h2 class="text-xl font-bold text-[#800000] mb-2">Bot Release Date</h2>
+                <input type="date" id="botReleaseDateInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" onchange="updateBotReleaseDate()">
+                <p id="daysUntilRelease" class="text-gray-600 text-sm"></p>
             </div>
-            <div class="tasks" id="todo-tasks"></div>
-        </div>
-
-        <div class="column" data-status="in-progress">
-            <div class="column-header">
-                <div class="column-title">In Progress</div>
-                <button class="add-task-btn" onclick="openAddTaskModal('in-progress')">+ Add Task</button>
-            </div>
-            <div class="tasks" id="in-progress-tasks"></div>
-        </div>
-
-        <div class="column" data-status="review">
-            <div class="column-header">
-                <div class="column-title">Review</div>
-                <button class="add-task-btn" onclick="openAddTaskModal('review')">+ Add Task</button>
-            </div>
-            <div class="tasks" id="review-tasks"></div>
-        </div>
-
-        <div class="column" data-status="done">
-            <div class="column-header">
-                <div class="column-title">Done</div>
-                <button class="add-task-btn" onclick="openAddTaskModal('done')">+ Add Task</button>
-            </div>
-            <div class="tasks" id="done-tasks"></div>
-        </div>
-    </div>
-
-    <!-- Add Task Modal -->
-    <div id="addTaskModal" class="modal">
-        <div class="modal-content">
-            <h3>Add New Task</h3>
-            <input type="text" id="taskTitle" placeholder="Task Title" maxlength="100">
-            <textarea id="taskDescription" placeholder="Task Description" rows="4"></textarea>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closeAddTaskModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="addTask()">Add Task</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let currentUser = null;
-        let currentStatus = 'todo';
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initializeUser();
-            await loadTasks();
-            setupRealTimeSubscription();
-            setupDragAndDrop();
-        });
-
-        // User Management
-        async function initializeUser() {
-            const userId = localStorage.getItem('kanban_user_id') || generateUserId();
-            localStorage.setItem('kanban_user_id', userId);
-            currentUser = userId;
-            updateStatus('Connected', true);
-        }
-
-        function generateUserId() {
-            return 'user_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function updateStatus(message, connected) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status-indicator ${connected ? 'status-connected' : 'status-disconnected'}`;
-        }
-
-        // Task Management
-        async function loadTasks() {
-            try {
-                const { data, error } = await supabase
-                    .from('tasks')
-                    .select('*')
-                    .order('created_at', { ascending: true });
-
-                if (error) throw error;
-
-                renderTasks(data || []);
-            } catch (error) {
-                console.error('Error loading tasks:', error);
-                updateStatus('Error loading tasks', false);
-            }
-        }
-
-        function renderTasks(tasks) {
-            // Clear all task containers
-            ['todo', 'in-progress', 'review', 'done'].forEach(status => {
-                document.getElementById(`${status}-tasks`).innerHTML = '';
-            });
-
-            // Render tasks in their respective columns
-            tasks.forEach(task => {
-                const taskElement = createTaskElement(task);
-                const container = document.getElementById(`${task.status}-tasks`);
-                if (container) {
-                    container.appendChild(taskElement);
-                }
-            });
-        }
-
-        function createTaskElement(task) {
-            const taskDiv = document.createElement('div');
-            taskDiv.className = 'task-card';
-            taskDiv.draggable = true;
-            taskDiv.dataset.taskId = task.id;
-            
-            taskDiv.innerHTML = `
-                <div class="task-title">${escapeHtml(task.title)}</div>
-                <div class="task-description">${escapeHtml(task.description || '')}</div>
-                <div class="task-meta">
-                    <span>by ${task.created_by}</span>
-                    <button class="delete-btn" onclick="deleteTask('${task.id}')">Delete</button>
+            <div class="card p-5">
+                <h2 class="text-xl font-bold text-[#800000] text-center mb-4">Issues Status</h2>
+                <div class="chart-canvas-container">
+                    <canvas id="issueStatusChart"></canvas>
                 </div>
-            `;
-            
-            return taskDiv;
+            </div>
+            <div class="card p-5 text-center">
+                <h2 class="text-xl font-bold text-[#800000] mb-2">Overdue Issues</h2>
+                <p id="overdueCount" class="text-5xl font-bold text-[#D24A32]"></p>
+                <p class="text-gray-600 mt-2">Issues past their due date.</p>
+            </div>
+        </section>
+
+        <section class="mb-8 flex flex-wrap justify-center gap-4">
+            <button class="btn-primary" onclick="filterIssues('all')">All Issues</button>
+            <button class="btn-primary" onclick="filterIssues('pending')">Pending Issues</button>
+            <button class="btn-primary" onclick="filterIssues('completed')">Completed Issues</button>
+        </section>
+
+        <section class="card mb-8">
+            <h2 class="text-2xl font-bold text-[#800000] mb-4">Kanban Board</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="kanban-board">
+                <!-- To Do Column -->
+                <div id="column-To Do" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'To Do')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">To Do</h3>
+                    <div id="issues-To Do" class="issue-list-container"></div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div id="column-In Progress" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'In Progress')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">In Progress</h3>
+                    <div id="issues-In Progress" class="issue-list-container"></div>
+                </div>
+
+                <!-- Review Column -->
+                <div id="column-Review" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'Review')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">Review</h3>
+                    <div id="issues-Review" class="issue-list-container"></div>
+                </div>
+
+                <!-- Completed Column -->
+                <div id="column-Completed" class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event, 'Completed')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                    <h3 class="kanban-column-header">Completed</h3>
+                    <div id="issues-Completed" class="issue-list-container"></div>
+                </div>
+            </div>
+            <button class="btn-primary mt-6 w-full md:w-auto" onclick="openAddIssueModal()">Add New Issue</button>
+        </section>
+    </div>
+
+    <!-- Add/Edit Issue Modal -->
+    <div id="issueModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeIssueModal()">&times;</span>
+            <h2 id="modalTitle" class="text-2xl font-bold text-[#800000] mb-4">Add New Issue</h2>
+            <form id="issueForm" class="space-y-4">
+                <div>
+                    <label for="issueName" class="block text-gray-700 text-sm font-bold mb-2">Issue Name:</label>
+                    <input type="text" id="issueName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="issuePriority" class="block text-gray-700 text-sm font-bold mb-2">Priority:</label>
+                    <select id="issuePriority" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="P0">P0 - Critical</option>
+                        <option value="P1">P1 - High</option>
+                        <option value="P2">P2 - Medium</option>
+                        <option value="P3">P3 - Low</option>
+                        <option value="P4">P4 - Very Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="issueKanbanStage" class="block text-gray-700 text-sm font-bold mb-2">Kanban Stage:</label>
+                    <select id="issueKanbanStage" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Review">Review</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="testUpdate" class="block text-gray-700 text-sm font-bold mb-2">Confirmatory Test Update:</label>
+                    <select id="testUpdate" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Not Confirmed">Not Confirmed</option>
+                        <option value="Confirmed">Confirmed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dueDate" class="block text-gray-700 text-sm font-bold mb-2">Due Date:</label>
+                    <input type="date" id="dueDate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="developerRemark" class="block text-gray-700 text-sm font-bold mb-2">Developer Remark:</label>
+                    <textarea id="developerRemark" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
+                </div>
+                <input type="hidden" id="issueId">
+                <button type="submit" class="btn-primary w-full">Save Issue</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules directly. These are provided by the Firebase CDN.
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase access, accessible to other scripts via window object
+        window.firebaseApp = null;
+        window.db = null;
+        window.auth = null;
+        window.isAuthReady = false; // Flag to ensure Firestore ops only after auth
+
+        // Reference to loading overlay HTML element
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // Show loading overlay as soon as this script starts executing
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = 'flex';
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // Hide loading overlay
+        function hideLoadingOverlay() {
+            loadingOverlay.style.display = 'none';
         }
 
-        // Modal Management
-        function openAddTaskModal(status) {
-            currentStatus = status;
-            document.getElementById('addTaskModal').style.display = 'block';
-            document.getElementById('taskTitle').focus();
-        }
+        // Immediately show the loading overlay.
+        // This ensures visual feedback even before network requests begin.
+        // Moved this call here, after the 'loadingOverlay' element is guaranteed to exist.
+        showLoadingOverlay(); 
 
-        function closeAddTaskModal() {
-            document.getElementById('addTaskModal').style.display = 'none';
-            document.getElementById('taskTitle').value = '';
-            document.getElementById('taskDescription').value = '';
-        }
-
-        async function addTask() {
-            const title = document.getElementById('taskTitle').value.trim();
-            const description = document.getElementById('taskDescription').value.trim();
-
-            if (!title) {
-                alert('Please enter a task title');
-                return;
-            }
-
+        // Function to initialize Firebase authentication and database connection
+        const initFirebase = async () => {
             try {
-                const { error } = await supabase
-                    .from('tasks')
-                    .insert([{
-                        title: title,
-                        description: description,
-                        status: currentStatus,
-                        created_by: currentUser,
-                        created_at: new Date().toISOString()
-                    }]);
+                // __app_id and __firebase_config are automatically provided by the Canvas environment.
+                // We parse them to get the necessary configuration.
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 
-                if (error) throw error;
+                // Basic check for valid Firebase config
+                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey) {
+                    console.error("Firebase config is missing or invalid. Cannot initialize Firebase. Using fallback data.");
+                    // Fallback to initial local data if Firebase setup fails
+                    window.issues = window.initialIssues;
+                    window.botReleaseDate = '2025-09-30'; // Default fallback date
+                    renderAll(); // Render UI with fallback data
+                    hideLoadingOverlay(); // Hide overlay as no cloud data will be fetched
+                    return;
+                }
 
-                closeAddTaskModal();
-            } catch (error) {
-                console.error('Error adding task:', error);
-                alert('Error adding task. Please try again.');
-            }
-        }
+                // Initialize the Firebase application
+                window.firebaseApp = initializeApp(firebaseConfig);
+                window.db = getFirestore(window.firebaseApp); // Get Firestore instance
+                window.auth = getAuth(window.firebaseApp); // Get Auth instance
 
-        async function deleteTask(taskId) {
-            if (!confirm('Are you sure you want to delete this task?')) return;
+                console.log("Firebase app and services initialized.");
 
-            try {
-                const { error } = await supabase
-                    .from('tasks')
-                    .delete()
-                    .eq('id', taskId);
-
-                if (error) throw error;
-            } catch (error) {
-                console.error('Error deleting task:', error);
-                alert('Error deleting task. Please try again.');
-            }
-        }
-
-        async function updateTaskStatus(taskId, newStatus) {
-            try {
-                const { error } = await supabase
-                    .from('tasks')
-                    .update({ status: newStatus })
-                    .eq('id', taskId);
-
-                if (error) throw error;
-            } catch (error) {
-                console.error('Error updating task:', error);
-                alert('Error updating task. Please try again.');
-            }
-        }
-
-        // Real-time subscription
-        function setupRealTimeSubscription() {
-            supabase
-                .channel('tasks_channel')
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'tasks'
-                }, (payload) => {
-                    console.log('Real-time update:', payload);
-                    loadTasks(); // Reload tasks when changes occur
-                })
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
-                        updateStatus('Connected', true);
+                // Listen for authentication state changes. This is crucial as Firestore operations
+                // require an authenticated user (even an anonymous one).
+                onAuthStateChanged(window.auth, async (user) => {
+                    if (user) {
+                        // User is signed in (either from custom token or anonymously)
+                        console.log("User authenticated. User ID:", user.uid);
+                        window.isAuthReady = true; // Mark Firebase as ready
+                        document.getElementById('displayUserId').textContent = user.uid; // Display user ID on UI
+                        loadInitialDataAndSetupListeners(); // Proceed to load data and setup real-time listeners
                     } else {
-                        updateStatus('Connecting...', false);
+                        // No user signed in, attempt anonymous sign-in for shared access
+                        console.log("No user signed in. Attempting anonymous sign-in for shared access...");
+                        try {
+                            // Check for __initial_auth_token provided by Canvas (for authenticated sessions)
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(window.auth, __initial_auth_token);
+                                console.log("Signed in with custom token for shared access.");
+                            } else {
+                                // If no custom token, sign in anonymously
+                                await signInAnonymously(window.auth);
+                                console.log("Signed in anonymously for shared access.");
+                            }
+                        } catch (error) {
+                            console.error("Firebase authentication error for shared access:", error);
+                            document.getElementById('displayUserId').textContent = 'Authentication Failed';
+                            // Fallback to initial local data if authentication fails
+                            window.issues = window.initialIssues;
+                            window.botReleaseDate = '2025-09-30'; // Default fallback date
+                            renderAll();
+                            hideLoadingOverlay(); // Hide overlay as no cloud data will be fetched
+                        }
                     }
                 });
-        }
+            } catch (error) {
+                console.error("Critical error initializing Firebase:", error);
+                document.getElementById('displayUserId').textContent = 'Initialization Failed';
+                // Fallback to initial local data if Firebase initialization fails
+                window.issues = window.initialIssues;
+                window.botReleaseDate = '2025-09-30'; // Default fallback date
+                renderAll();
+                hideLoadingOverlay(); // Hide overlay
+            }
+        };
 
-        // Drag and Drop
-        function setupDragAndDrop() {
-            const board = document.getElementById('kanban-board');
-            
-            board.addEventListener('dragstart', (e) => {
-                if (e.target.classList.contains('task-card')) {
-                    e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
-                    e.target.classList.add('dragging');
-                }
-            });
+        // Call initFirebase when the script loads to begin the process
+        initFirebase();
 
-            board.addEventListener('dragend', (e) => {
-                if (e.target.classList.contains('task-card')) {
-                    e.target.classList.remove('dragging');
-                }
-            });
 
-            board.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
+        // Global state variables for issues, filter, release date, and chart instance
+        let issues = [];
+        let currentFilter = 'all';
+        let botReleaseDate = '';
+        let issueStatusChartInstance; // Stores the Chart.js instance for updates
 
-            board.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const taskId = e.dataTransfer.getData('text/plain');
-                const column = e.target.closest('.column');
+        // Priority order mapping (P0 = highest priority, P4 = lowest)
+        const priorityOrder = { 'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4 };
+
+        // Initial High-Priority Issues (used only if no data exists in Firestore)
+        // These are fallback data, or data to seed the database if it's empty.
+        const initialIssues = [
+            { id: 'issue1', name: 'Conversation Reset Mechanism and User Sessions', priority: 'P0', status: 'To Do', test_status: 'Not Confirmed', dueDate: '2025-07-15', remark: 'Working on refining session state management.' },
+            { id: 'issue2', name: 'Company Name Field Removal', priority: 'P1', status: 'In Progress', test_status: 'Not Confirmed', dueDate: '2025-06-25', remark: 'Flow adjustments are almost done, testing required.' },
+            { id: 'issue3', name: 'Missing Essential Field (Website Name for MVP Stage)', priority: 'P1', status: 'To Do', test_status: 'Not Confirmed', dueDate: '2025-08-01', remark: 'Schema updated, awaiting frontend integration.' },
+            { id: 'issue4', name: 'Multi-Link Display Issue in Pitch Document', priority: 'P2', status: 'Review', test_status: 'Not Confirmed', dueDate: '2025-06-18', remark: 'Investigating CSS layout issues with multiple URLs. Overdue, prioritizing this week.' }, // Overdue
+            { id: 'issue5', name: 'Inconsistent Stage-Specific Elaboration', priority: 'P2', status: 'Review', test_status: 'Not Confirmed', dueDate: '2025-06-10', remark: 'Reviewing current elaboration rules for consistency. Overdue.' }, // Overdue
+            { id: 'issue6', name: 'Hindi Language Support Deficiencies', priority: 'P0', status: 'To Do', test_status: 'Not Confirmed', dueDate: '2025-08-15', remark: 'Researching better NLP models for Hindi. High complexity.' },
+            { id: 'issue7', name: 'Flexible Data Input (Age vs. DOB)', priority: 'P3', status: 'Completed', test_status: 'Confirmed', dueDate: '2025-06-20', remark: 'Implemented and tested. User can now state age directly.' }, // Completed
+            { id: 'issue8', name: 'Limited Bot Assistance (Editing Phase)', priority: 'P1', status: 'In Progress', test_status: 'Not Confirmed', dueDate: '2025-07-25', remark: 'Developing in-line editing functionality, in early stages.' }
+        ];
+
+        // Firestore collection and document references
+        let issuesColRef;
+        let botReleaseDateDocRef;
+        // Unsubscribe functions for real-time listeners to prevent memory leaks
+        let unsubscribeIssues = null; 
+        let unsubscribeBotDate = null; 
+
+        // Function to load initial data from Firestore and set up real-time listeners
+        const loadInitialDataAndSetupListeners = async () => {
+            // Ensure Firebase is ready before attempting Firestore operations
+            if (!window.isAuthReady || !window.db) {
+                console.warn("Attempted to load data before Firebase was fully ready.");
+                return; // Exit if not ready, wait for onAuthStateChanged to trigger again
+            }
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // Define Firestore collection and document paths for shared public data
+            issuesColRef = collection(window.db, `artifacts/${appId}/public/data/issues`);
+            botReleaseDateDocRef = doc(window.db, `artifacts/${appId}/public/data/settings/bot_release_date`);
+
+            // Unsubscribe from any previous listeners to ensure only one set is active
+            if (unsubscribeIssues) {
+                unsubscribeIssues();
+                console.log("Unsubscribed from previous issues listener.");
+            }
+            if (unsubscribeBotDate) {
+                unsubscribeBotDate();
+                console.log("Unsubscribed from previous bot release date listener.");
+            }
+
+            let initialIssuesSnapshotHandled = false;
+            let initialBotDateSnapshotHandled = false;
+
+            // Set up real-time listener for 'issues' collection
+            unsubscribeIssues = onSnapshot(issuesColRef, async (snapshot) => {
+                // Map Firestore documents to our local issues array
+                issues = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log(`Issues snapshot received. Total issues: ${issues.length}`);
                 
-                if (column && taskId) {
-                    const newStatus = column.dataset.status;
-                    updateTaskStatus(taskId, newStatus);
+                // If this is the first snapshot and the collection is empty, populate with initial data
+                if (!initialIssuesSnapshotHandled && issues.length === 0) {
+                    console.log("Issues collection is empty. Populating with initial data...");
+                    const batchWrites = initialIssues.map(issue => setDoc(doc(issuesColRef, issue.id), issue));
+                    try {
+                        await Promise.all(batchWrites); // Perform all writes concurrently
+                        console.log("Initial issues successfully populated to Firestore.");
+                    } catch (error) {
+                        console.error("Error populating initial issues:", error);
+                    }
+                }
+                initialIssuesSnapshotHandled = true; // Mark that initial issues snapshot has been processed
+
+                renderAll(); // Re-render the UI with the latest data
+                // Hide loading overlay only when BOTH issues and bot date have been loaded
+                if (initialIssuesSnapshotHandled && initialBotDateSnapshotHandled) {
+                    hideLoadingOverlay();
+                    console.log("Dashboard fully loaded and rendered.");
+                }
+            }, (error) => {
+                console.error("Error listening to issues (onSnapshot failed):", error);
+                // Fallback to local initial issues if the Firestore listener itself fails
+                issues = initialIssues; 
+                renderAll();
+                hideLoadingOverlay(); // Hide overlay on error to prevent indefinite loading
+            });
+
+            // Set up real-time listener for 'bot_release_date' document
+            unsubscribeBotDate = onSnapshot(botReleaseDateDocRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    botReleaseDate = docSnap.data().date;
+                    console.log("Bot release date snapshot received:", botReleaseDate);
+                } else {
+                    // If the document doesn't exist, set a default and write it to Firestore
+                    console.log("Bot release date document not found. Setting default.");
+                    botReleaseDate = '2025-09-30'; 
+                    try {
+                        await setDoc(botReleaseDateDocRef, { date: botReleaseDate }); // Create the document
+                        console.log("Default bot release date set in Firestore.");
+                    } catch (error) {
+                        console.error("Error setting default bot release date:", error);
+                    }
+                }
+                document.getElementById('botReleaseDateInput').value = botReleaseDate;
+                initialBotDateSnapshotHandled = true; // Mark that initial bot date snapshot has been processed
+                updateKPIs(); // Update KPIs with the latest date
+                // Hide loading overlay only when BOTH issues and bot date have been loaded
+                if (initialIssuesSnapshotHandled && initialBotDateSnapshotHandled) {
+                    hideLoadingOverlay();
+                    console.log("Dashboard fully loaded and rendered.");
+                }
+            }, (error) => {
+                console.error("Error listening to bot release date (onSnapshot failed):", error);
+                // Fallback for bot release date if its listener fails
+                botReleaseDate = '2025-09-30';
+                document.getElementById('botReleaseDateInput').value = botReleaseDate;
+                updateKPIs();
+                // hideLoadingOverlay is handled by issues listener's conditional check
+            });
+        };
+
+        // Function to update the bot release date in Firestore
+        async function updateBotReleaseDate() {
+            if (!window.isAuthReady || !botReleaseDateDocRef) {
+                console.warn("Firebase not ready for bot release date update.");
+                return;
+            }
+            botReleaseDate = document.getElementById('botReleaseDateInput').value;
+            try {
+                // Use setDoc with merge: true to update only the 'date' field
+                await setDoc(botReleaseDateDocRef, { date: botReleaseDate }, { merge: true }); 
+                console.log("Bot release date updated in Firestore:", botReleaseDate);
+            } catch (error) {
+                console.error("Error updating bot release date in Firestore:", error);
+            }
+            updateKPIs(); // Update KPIs locally immediately for responsiveness (real-time listener will also update)
+        }
+
+        // Renders issues into their respective Kanban columns based on their 'status' property
+        function renderIssues() {
+            const kanbanColumns = ['To Do', 'In Progress', 'Review', 'Completed'];
+            kanbanColumns.forEach(column => {
+                const columnDiv = document.getElementById(`issues-${column}`);
+                if (columnDiv) {
+                    columnDiv.innerHTML = ''; // Clear existing cards in the column
+                }
+            });
+
+            let issuesToDisplay = issues;
+            // Apply global filter based on currentFilter state
+            if (currentFilter === 'pending') {
+                issuesToDisplay = issues.filter(issue => issue.status !== 'Completed');
+            } else if (currentFilter === 'completed') {
+                issuesToDisplay = issues.filter(issue => issue.status === 'Completed');
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date for accurate comparison
+
+            kanbanColumns.forEach(columnName => {
+                const columnContainer = document.getElementById(`issues-${columnName}`);
+                if (!columnContainer) return; // Skip if column container doesn't exist
+
+                let issuesInColumn = issuesToDisplay.filter(issue => issue.status === columnName);
+
+                // Sort issues within the column by Priority (P0 highest) then by Due Date (earliest first)
+                issuesInColumn.sort((a, b) => {
+                    const priorityA = priorityOrder[a.priority];
+                    const priorityB = priorityOrder[b.priority];
+
+                    // Handle cases where priority might be undefined (e.g., new issue not fully defined)
+                    if (priorityA === undefined && priorityB === undefined) return 0;
+                    if (priorityA === undefined) return 1; // Undefined priority goes to end
+                    if (priorityB === undefined) return -1; // Undefined priority goes to end
+
+                    if (priorityA !== priorityB) {
+                        return priorityA - priorityB; // Sort by priority number
+                    }
+
+                    // If priorities are the same, sort by due date
+                    const dateA = new Date(a.dueDate);
+                    const dateB = new Date(b.dueDate);
+                    return dateA - dateB; // Sort by earliest due date
+                });
+
+                issuesInColumn.forEach(issue => {
+                    const issueCard = document.createElement('div');
+                    issueCard.className = 'kanban-item';
+                    issueCard.setAttribute('draggable', true); // Make card draggable
+                    issueCard.setAttribute('data-issue-id', issue.id); // Store issue ID on the element
+
+                    const dueDateObj = new Date(issue.dueDate);
+                    dueDateObj.setHours(0, 0, 0, 0);
+                    let isOverdue = false;
+                    // An issue is overdue if it's not completed and its due date is before today
+                    if (issue.status !== 'Completed' && dueDateObj < today) {
+                        isOverdue = true;
+                    }
+
+                    // Set dynamic border color based on status or if it's overdue
+                    issueCard.style.borderLeftColor = isOverdue ? '#800000' : // Maroon if overdue
+                                                    (issue.status === 'Completed' ? '#3A663A' : // Green for completed
+                                                    (issue.status === 'To Do' ? '#800000' : // Maroon for To Do
+                                                    (issue.status === 'In Progress' ? '#C75A5A' : // Faint Pink for In Progress
+                                                    (issue.status === 'Review' ? '#E6A148' : '#F2C2C2')))); // Yellow for Review
+
+                    // Populate card content
+                    issueCard.innerHTML = `
+                        <div class="flex-grow">
+                            <h3 class="text-lg font-semibold text-[#362C2A]">${issue.name}</h3>
+                            <div class="flex flex-wrap items-center gap-2 mt-1 text-sm">
+                                <span class="priority-badge priority-${issue.priority.toLowerCase()}">${issue.priority}</span>
+                                <span class="status-badge status-${issue.status.toLowerCase().replace(/\s/g, '')}">${issue.status}</span>
+                                <span class="status-badge test-${issue.test_status.toLowerCase().replace(/\s/g, '')}">${issue.test_status}</span>
+                                ${issue.dueDate ? `<span class="text-gray-600">Due: ${issue.dueDate}</span>` : ''}
+                                ${isOverdue ? '<span class="status-badge overdue-badge">Overdue</span>' : ''}
+                            </div>
+                            ${issue.remark ? `<p class="text-gray-600 text-sm mt-2"><strong>Remark:</strong> ${issue.remark}</p>` : ''}
+                        </div>
+                        <div class="flex space-x-2 mt-3">
+                            <button class="btn-secondary text-sm px-3 py-1" onclick="editIssue('${issue.id}')">Edit</button>
+                            <button class="btn-secondary text-sm px-3 py-1" onclick="deleteIssue('${issue.id}')">Delete</button>
+                        </div>
+                    `;
+                    columnContainer.appendChild(issueCard);
+                });
+            });
+
+            // Add drag/drop event listeners to dynamically created items
+            document.querySelectorAll('.kanban-item').forEach(item => {
+                item.addEventListener('dragstart', dragStart);
+            });
+        }
+
+        // Drag and Drop Functions
+        let draggedItemId = null; // Stores the ID of the issue being dragged
+
+        // Allows dropping by preventing default dragover behavior
+        function allowDrop(event) {
+            event.preventDefault(); 
+            const targetColumn = event.currentTarget;
+            if (!targetColumn.classList.contains('drag-over')) {
+                 targetColumn.classList.add('drag-over'); // Add visual feedback for drag-over
+            }
+        }
+
+        // Adds visual feedback when dragging enters a column
+        function dragEnter(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        // Removes visual feedback when dragging leaves a column
+        function dragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        // Stores the ID of the dragged item and sets drag data
+        function dragStart(event) {
+            draggedItemId = event.target.getAttribute('data-issue-id');
+            event.dataTransfer.setData('text/plain', draggedItemId); // Set data for transfer
+            event.target.classList.add('dragging'); // Add dragging style
+        }
+
+        // Handles dropping an item into a new stage/column
+        async function drop(event, newStage) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over'); // Remove drag-over feedback
+
+            const id = event.dataTransfer.getData('text/plain'); // Get the dragged issue ID
+            const draggedElement = document.querySelector(`.kanban-item[data-issue-id="${id}"]`);
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging'); // Remove dragging style
+            }
+
+            const issueToUpdate = issues.find(issue => issue.id === id);
+            // Update Firestore only if the stage has actually changed
+            if (issueToUpdate && issueToUpdate.status !== newStage) {
+                try {
+                    const issueDocRef = doc(issuesColRef, id); // Get reference to the document
+                    // Update only the 'status' field. merge: true ensures other fields are untouched.
+                    await setDoc(issueDocRef, { status: newStage }, { merge: true }); 
+                    console.log(`Issue ${id} moved to ${newStage} in Firestore.`);
+                    // UI will automatically update via the onSnapshot listener
+                } catch (error) {
+                    console.error("Error updating issue status in Firestore:", error);
+                }
+            }
+        }
+
+
+        // Filters which issues are displayed based on the filter type
+        function filterIssues(filterType) {
+            currentFilter = filterType; // Update global filter state
+            // Hide/show Kanban columns based on the selected filter
+            const kanbanColumns = ['To Do', 'In Progress', 'Review', 'Completed'];
+            kanbanColumns.forEach(columnName => {
+                const columnElement = document.getElementById(`column-${columnName}`);
+                if (columnElement) {
+                    if (filterType === 'all') {
+                        columnElement.style.display = 'block'; // Show all columns
+                    } else if (filterType === 'pending') {
+                        if (columnName === 'Completed') {
+                            columnElement.style.display = 'none'; // Hide Completed column for pending view
+                        } else {
+                            columnElement.style.display = 'block';
+                        }
+                    } else if (filterType === 'completed') {
+                        if (columnName === 'Completed') {
+                            columnElement.style.display = 'block'; // Only show Completed column for completed view
+                        } else {
+                            columnElement.style.display = 'none';
+                        }
+                    }
+                }
+            });
+            renderIssues(); // Re-render issues with the new filter
+        }
+
+
+        // Modal functions for adding/editing issues
+        const issueModal = document.getElementById('issueModal');
+        const issueForm = document.getElementById('issueForm');
+        const modalTitle = document.getElementById('modalTitle');
+
+        // Opens the modal for adding a new issue, resetting form fields
+        function openAddIssueModal() {
+            modalTitle.textContent = 'Add New Issue';
+            issueForm.reset(); // Clear form inputs
+            document.getElementById('issueId').value = ''; // Clear hidden ID field
+            document.getElementById('issuePriority').value = 'P2'; // Set default priority
+            document.getElementById('issueKanbanStage').value = 'To Do'; // Set default stage
+            // Set default due date to today + 7 days for convenience
+            const today = new Date();
+            today.setDate(today.getDate() + 7);
+            document.getElementById('dueDate').value = today.toISOString().split('T')[0];
+            document.getElementById('developerRemark').value = ''; // Clear remark
+            issueModal.style.display = 'flex'; // Show the modal
+        }
+
+        // Opens the modal for editing an existing issue, pre-filling form fields
+        function openEditIssueModal(issue) {
+            modalTitle.textContent = 'Edit Issue';
+            document.getElementById('issueId').value = issue.id; // Set hidden ID field
+            document.getElementById('issueName').value = issue.name;
+            document.getElementById('issuePriority').value = issue.priority;
+            document.getElementById('issueKanbanStage').value = issue.status;
+            document.getElementById('testUpdate').value = issue.test_status;
+            document.getElementById('dueDate').value = issue.dueDate;
+            document.getElementById('developerRemark').value = issue.remark || ''; // Populate remark (or empty string if null)
+            issueModal.style.display = 'flex'; // Show the modal
+        }
+
+        // Closes the issue modal
+        function closeIssueModal() {
+            issueModal.style.display = 'none';
+        }
+
+        // Event listener for the issue form submission (add or edit)
+        issueForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission and page reload
+            const id = document.getElementById('issueId').value;
+            const name = document.getElementById('issueName').value;
+            const priority = document.getElementById('issuePriority').value;
+            const kanbanStage = document.getElementById('issueKanbanStage').value; 
+            const test_status = document.getElementById('testUpdate').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const remark = document.getElementById('developerRemark').value;
+
+            // Create an object with all issue data
+            const issueData = { name, priority, status: kanbanStage, test_status, dueDate, remark };
+
+            try {
+                if (id) {
+                    // If 'id' exists, it's an existing issue to update
+                    const issueDocRef = doc(issuesColRef, id);
+                    await setDoc(issueDocRef, issueData, { merge: true }); // Update document, merging with existing data
+                    console.log("Issue updated in Firestore:", id);
+                } else {
+                    // If no 'id', it's a new issue to add
+                    const newDocRef = await addDoc(issuesColRef, issueData); // addDoc auto-generates a unique ID
+                    console.log("New issue added to Firestore with ID:", newDocRef.id);
+                }
+                // The UI will automatically update due to the onSnapshot listener
+            } catch (error) {
+                console.error("Error saving issue to Firestore:", error);
+            }
+            closeIssueModal(); // Close modal after saving
+        });
+
+        // Function called from card's edit button
+        function editIssue(id) {
+            const issueToEdit = issues.find(issue => issue.id === id); // Find the issue by ID
+            if (issueToEdit) {
+                openEditIssueModal(issueToEdit); // Open modal with issue data
+            }
+        }
+
+        // Function called from card's delete button
+        async function deleteIssue(id) {
+            // Confirm deletion with the user (replace with custom modal if preferred)
+            if (confirm('Are you sure you want to delete this issue?')) {
+                try {
+                    const issueDocRef = doc(issuesColRef, id); // Get reference to the document
+                    await deleteDoc(issueDocRef); // Delete the document
+                    console.log("Issue deleted from Firestore:", id);
+                    // The UI will automatically update due to the onSnapshot listener
+                } catch (error) {
+                    console.error("Error deleting issue from Firestore:", error);
+                }
+            }
+        }
+
+        // Chart.js - Issue Status Pie Chart
+        function renderIssueStatusChart() {
+            // Count issues by status for the chart
+            const todoIssues = issues.filter(issue => issue.status === 'To Do').length;
+            const inProgressIssues = issues.filter(issue => issue.status === 'In Progress').length;
+            const reviewIssues = issues.filter(issue => issue.status === 'Review').length;
+            const completedIssues = issues.filter(issue => issue.status === 'Completed').length;
+
+            const ctx = document.getElementById('issueStatusChart').getContext('2d');
+
+            // Destroy previous chart instance if it exists to prevent overlap/errors
+            if (issueStatusChartInstance) {
+                issueStatusChartInstance.destroy(); 
+            }
+
+            // Create a new doughnut chart
+            issueStatusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Review', 'Completed'],
+                    datasets: [{
+                        data: [todoIssues, inProgressIssues, reviewIssues, completedIssues],
+                        backgroundColor: ['#800000', '#FFCCCC', '#E6A148', '#3A663A'], // Custom colors
+                        borderColor: '#F8F8F8', // Border color to match background
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow custom height for container
+                    plugins: {
+                        legend: {
+                            position: 'bottom', // Legend at the bottom
+                            labels: {
+                                font: { size: 14, family: 'Inter' },
+                                color: '#362C2A' // Dark text color
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                // Customize tooltip to show count and percentage
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                    return `${label}: ${value} (${percentage})`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%' // Makes it a doughnut chart
                 }
             });
         }
 
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('addTaskModal');
-            if (e.target === modal) {
-                closeAddTaskModal();
-            }
-        });
+        // Updates Key Performance Indicators (KPIs) like overdue count and days until release
+        function updateKPIs() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date for consistent comparison
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeAddTaskModal();
+            let overdueCount = 0;
+            issues.forEach(issue => {
+                // Only count as overdue if the issue is NOT completed
+                if (issue.status !== 'Completed') { 
+                    const dueDateObj = new Date(issue.dueDate);
+                    dueDateObj.setHours(0, 0, 0, 0);
+                    if (dueDateObj < today) {
+                        overdueCount++;
+                    }
+                }
+            });
+            document.getElementById('overdueCount').textContent = overdueCount; // Update overdue count on UI
+
+            // Calculate days until bot release
+            const releaseDateObj = new Date(botReleaseDate);
+            releaseDateObj.setHours(0, 0, 0, 0);
+            const diffTime = releaseDateObj.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+
+            const daysUntilReleaseElement = document.getElementById('daysUntilRelease');
+            // Update days until release text and apply styling based on status
+            if (diffDays > 0) {
+                daysUntilReleaseElement.textContent = `(${diffDays} days until release)`;
+                daysUntilReleaseElement.className = 'text-gray-600 text-sm';
+            } else if (diffDays === 0) {
+                daysUntilReleaseElement.textContent = `(Release today!)`;
+                daysUntilReleaseElement.className = 'text-green-600 text-sm font-semibold';
+            } else {
+                daysUntilReleaseElement.textContent = `(Release was ${Math.abs(diffDays)} days ago)`;
+                daysUntilReleaseElement.className = 'text-red-600 text-sm font-semibold';
             }
-        });
+        }
+
+        // Main render function that updates all dynamic parts of the UI
+        function renderAll() {
+            renderIssues(); // Re-render Kanban board
+            renderIssueStatusChart(); // Re-render chart
+            updateKPIs(); // Update all KPI displays
+        }
     </script>
+
 </body>
 </html>
